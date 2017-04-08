@@ -82,7 +82,22 @@ ctnApiClient.sendMessage({
 ### Reading a message
 
 ```shell
-ctnApiClient.readMessage(txid, 'utf8',
+ctnApiClient.readMessage(messageId, 'utf8',
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+        }
+});
+```
+
+
+### Retrieving information about a message's container
+
+```shell
+ctnApiClient.retrieveMessageContainer(messageId,
     function (err, data) {
         if (err) {
             // Process error

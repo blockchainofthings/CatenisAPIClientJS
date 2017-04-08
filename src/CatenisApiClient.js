@@ -30,13 +30,13 @@
     //      host: [String],             - (optional, default: catenis.io) Host name (with optional port) of target Catenis API server
     //      environment: [String],      - (optional, default: 'prod') Environment of target Catenis API server. Valid values: 'prod', 'beta'
     //      secure: [Boolean],          - (optional, default: true) Indicates whether a secure connection (HTTPS) should be used
-    //      version: [String]           - (optional, default: 0.1) Version of Catenis API to target
+    //      version: [String]           - (optional, default: 0.2) Version of Catenis API to target
     //    }
     function ApiClient(deviceId, apiAccessSecret, options) {
         var _host = 'catenis.io';
         var _subdomain = '';
         var _secure = true;
-        var _version = '0.1';
+        var _version = '0.2';
 
         if (typeof options === 'object' && options !== null) {
             _host = typeof options.host === 'string' && options.host.length > 0 ? options.host : _host;
@@ -61,15 +61,7 @@
             callback(data);
         }
         else if (returnType === 'success') {
-            if (typeof data === 'object' && data !== null) {
-                var objKeys = Object.keys(data);
-                if (objKeys.length > 0 && objKeys[0] === 'error') {
-                    callback(data);
-                }
-                else {
-                    callback(undefined, data);
-                }
-            }
+            callback(undefined, data);
         }
     };
 
@@ -92,12 +84,11 @@
             data.options = options;
         }
 
-        var successFunc = ApiClient.processReturn.bind(undefined, callback),
-            errorFunc = successFunc;
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
-        postRequest.call(this, 'message/log', data, {
-            success: successFunc,
-            error: errorFunc
+        postRequest.call(this, 'messages/log', data, {
+            success: procFunc,
+            error: procFunc
         })
     };
 
@@ -125,25 +116,24 @@
             data.options = options;
         }
 
-        var successFunc = ApiClient.processReturn.bind(undefined, callback),
-            errorFunc = successFunc;
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
-        postRequest.call(this, 'message/send', data, {
-            success: successFunc,
-            error: errorFunc
+        postRequest.call(this, 'messages/send', data, {
+            success: procFunc,
+            error: procFunc
         });
     };
 
     // Read a message
     //
     //  Parameters:
-    //    txid: [String]        - ID of blockchain transaction where message is written
+    //    messageId: [String]   - ID of message to read
     //    encoding: [String]    - (optional, default: "utf8") One of the following values identifying the encoding that should be used for the returned message: utf8|base64|hex
     //    callback: [Function]  - Callback function
-    ApiClient.prototype.readMessage = function (txid, encoding, callback) {
+    ApiClient.prototype.readMessage = function (messageId, encoding, callback) {
         var params = {
             url: [
-                txid
+                messageId
             ]
         };
 
@@ -153,20 +143,37 @@
             };
         }
 
-        var successFunc = ApiClient.processReturn.bind(undefined, callback),
-            errorFunc = successFunc;
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
-        getRequest.call(this, 'message/read', params, {
-            success: successFunc,
-            error: errorFunc
+        getRequest.call(this, 'messages/:messageId', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Retrieve message container
+    //
+    //  Parameters:
+    //    messageId: [String]   - ID of message to retrieve container info
+    //    callback: [Function]  - Callback function
+    ApiClient.prototype.retrieveMessageContainer = function (messageId, callback) {
+        var params = {
+            url: [
+                messageId
+            ]
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'messages/:messageId/container', params, {
+            success: procFunc,
+            error: procFunc
         });
     };
 
     function postRequest(methodPath, data, result) {
-        var url = this.rootApiEndPoint + '/' + methodPath;
-
         this.reqParams = {
-            url: url,
+            url: this.rootApiEndPoint + '/' + methodPath,
             contentType: "application/json",
             processData: false,
             data: JSON.stringify(data),
@@ -181,28 +188,32 @@
     }
 
     function getRequest(methodPath, params, result) {
-        var url = this.rootApiEndPoint + '/' + methodPath;
-
         if (typeof params === 'object' && params !== null) {
             if (typeof params.url === 'object' && Array.isArray(params.url)) {
-                params.url.forEach(function (urlParam) {
+                /*params.url.forEach(function (urlParam) {
                     url += '/' + encodeURI(urlParam);
+                });*/
+                params.url.forEach(function (urlParam) {
+                    methodPath = methodPath.replace(/:\w+/, encodeURI(urlParam));
                 });
             }
 
             if (typeof params.query === 'object' && params.query !== null) {
                 var queryStr = '';
                 for (var queryParam in params.query) {
+                    if (queryStr.length > 0) {
+                        queryStr += '&';
+                    }
                     queryStr += encodeURI(queryParam) + '=' + encodeURI(params.query[queryParam]);
                 }
                 if (queryStr.length > 0) {
-                    url += '?' + queryStr;
+                    methodPath += '?' + queryStr;
                 }
             }
         }
 
         this.reqParams = {
-            url: url,
+            url: this.rootApiEndPoint + '/' + methodPath,
             type: "GET",
             success: result.success,
             error: result.error
