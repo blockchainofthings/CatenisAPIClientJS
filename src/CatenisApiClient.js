@@ -236,7 +236,7 @@
             useSameSignKey = !!this.lastSignKey;
         }
         else {
-            signDate = this.lastSignDate = now.format('YYYYMMDD');
+            signDate = this.lastSignDate = now.utc().format('YYYYMMDD');
             useSameSignKey = false;
         }
 
