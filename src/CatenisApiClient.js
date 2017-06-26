@@ -36,7 +36,7 @@
         var _host = 'catenis.io';
         var _subdomain = '';
         var _secure = true;
-        var _version = '0.2';
+        var _version = '0.3';
 
         if (typeof options === 'object' && options !== null) {
             _host = typeof options.host === 'string' && options.host.length > 0 ? options.host : _host;
@@ -166,6 +166,93 @@
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
         getRequest.call(this, 'messages/:messageId/container', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // List messages
+    //
+    //  Parameters:
+    //    options: [Object] (optional) {
+    //      action: [String]                 - (optional, default: "any") - One of the following values specifying the action originally performed on
+    //                                          the messages intended to be retrieved: "log"|"send"|"any"
+    //      direction [String]               - (optional, default: "any") - One of the following values specifying the direction of the sent messages
+    //                                          intended to be retrieve: "inbound"|"outbound"|"any". Note that this option only applies to
+    //                                          sent messages (action = "send"). "inbound" indicates messages sent to the device that issued
+    //                                          the request, while "outbound" indicates messages sent from the device that issued the request
+    //      fromDeviceIds [String]           - (optional) - Comma separated list containing the Catenis device ID of the devices from which
+    //                                          the messages intended to be retrieved had been sent. Note that this option only
+    //                                          applies to messages sent to the device that issued the request (action = "send" and direction = "inbound")
+    //      toDeviceIds [String]             - (optional) - Comma separated list containing the Catenis device ID of the devices to which
+    //                                          the messages intended to be retrieved had been sent. Note that this option only
+    //                                          applies to messages sent from the device that issued the request (action = "send" and direction = "outbound")
+    //      fromDeviceProdUniqueIds [String] - (optional) - Comma separated list containing the unique product ID of the devices from which
+    //                                          the messages intended to be retrieved had been sent. Note that this option only
+    //                                          applies to messages sent to the device that issued the request (action = "send" and direction = "inbound")
+    //      toDeviceProdUniqueIds [String]   - (optional) - Comma separated list containing the product unique ID of the devices to which
+    //                                          the messages intended to be retrieved had been sent. Note that this option only
+    //                                          applies to messages sent from the device that issued the request (action = "send" and direction = "outbound")
+    //      readState [String]               - (optional, default: "any") - One of the following values indicating the current read state of the
+    //                                          the messages intended to be retrieved: "unread"|"read"|"any".
+    //      startDate [String]               - (optional) - ISO 8601 formatted date and time specifying the lower boundary of the time frame within
+    //                                          which the messages intended to be retrieved has been: logged, in case of messages logged
+    //                                          by the device that issued the request (action = "log"); sent, in case of messages sent from the current
+    //                                          device (action = "send" direction = "outbound"); or received, in case of messages sent to
+    //                                          the device that issued the request (action = "send" and direction = "inbound")
+    //      endDate [String]                 - (optional) - ISO 8601 formatted date and time specifying the upper boundary of the time frame within
+    //                                          which the messages intended to be retrieved has been: logged, in case of messages logged
+    //                                          by the device that issued the request (action = "log"); sent, in case of messages sent from the current
+    //                                          device (action = "send" direction = "outbound"); or received, in case of messages sent to
+    //                                          he device that issued the request (action = "send" and direction = "inbound")
+    //    }
+    //    callback: [Function]  - Callback function
+    ApiClient.prototype.listMessages = function (options, callback) {
+        var params = {};
+
+        if (options) {
+            params.query = {};
+
+            if (options.action) {
+                params.query.action = options.action;
+            }
+
+            if (options.direction) {
+                params.query.direction = options.direction;
+            }
+
+            if (options.fromDeviceIds) {
+                params.query.fromDeviceIds = options.fromDeviceIds;
+            }
+
+            if (options.toDeviceIds) {
+                params.query.toDeviceIds = options.toDeviceIds;
+            }
+
+            if (options.fromDeviceProdUniqueIds) {
+                params.query.fromDeviceProdUniqueIds = options.fromDeviceProdUniqueIds;
+            }
+
+            if (options.toDeviceProdUniqueIds) {
+                params.query.toDeviceProdUniqueIds = options.toDeviceProdUniqueIds;
+            }
+
+            if (options.readState) {
+                params.query.readState = options.readState;
+            }
+
+            if (options.startDate) {
+                params.query.startDate = options.startDate;
+            }
+
+            if (options.endDate) {
+                params.query.endDate = options.endDate;
+            }
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'messages', params, {
             success: procFunc,
             error: procFunc
         });

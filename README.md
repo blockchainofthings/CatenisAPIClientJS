@@ -2,6 +2,8 @@
 
 This Javascript library is used to make it easier to access the Catenis API services from a web browser.
 
+This current release (1.2.0) targets version 0.3 of the Catenis API.
+
 ## Development
 
 ### Environment setup
@@ -93,11 +95,29 @@ ctnApiClient.readMessage(messageId, 'utf8',
 });
 ```
 
-
 ### Retrieving information about a message's container
 
 ```shell
 ctnApiClient.retrieveMessageContainer(messageId,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+        }
+});
+```
+
+### List messages
+
+```shell
+ctnApiClient.retrieveMessageContainer({
+        action: 'send',
+        direction: 'inbound',
+        readState: 'unread',
+        startDate: '20170101T000000Z'
+    },
     function (err, data) {
         if (err) {
             // Process error
