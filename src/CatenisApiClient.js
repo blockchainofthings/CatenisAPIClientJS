@@ -5,7 +5,9 @@
     // Save local reference to required third-party libraries
     var _jQuery = jQuery.noConflict(true),
         _moment = window.moment,
-        _sjcl = window.SJCL;
+        _sjcl = window.SJCL,
+        _heir = window.heir,
+        _EventEmitter = EventEmitter.noConflict();
 
     // Restore third-party libraries that might have been loaded before this library was loaded
     //  NOTE: no need to do the same with the jQuery library because its noConflict() method
@@ -13,15 +15,19 @@
     //      loaded beforehand
     window.moment = context._ctnApiClientLibs.moment;
     window.SJCL = context._ctnApiClientLibs.sjcl;
+    window.heir = context._ctnApiClientLibs.heir;
 
     var apiPath = '/api/',
         signVersionId = 'CTN1',
         signMethodId = 'CTN1-HMAC-SHA256',
         scopeRequest = 'ctn1_request',
         timestampHdr = 'X-BCoT-Timestamp',
-        signValidDays = 7;
+        signValidDays = 7,
+        notifyRootPath = 'notify',
+        wsNtfyRootPath =  'ws',
+        notifyWsSubprotocol = 'notify.catenis.io';
 
-    // Constructor
+    // Api Client function class constructor
     //
     //  Parameters:
     //    deviceId: [String]            - Catenis device ID
@@ -30,13 +36,13 @@
     //      host: [String],             - (optional, default: catenis.io) Host name (with optional port) of target Catenis API server
     //      environment: [String],      - (optional, default: 'prod') Environment of target Catenis API server. Valid values: 'prod', 'beta'
     //      secure: [Boolean],          - (optional, default: true) Indicates whether a secure connection (HTTPS) should be used
-    //      version: [String]           - (optional, default: 0.2) Version of Catenis API to target
+    //      version: [String]           - (optional, default: 0.4) Version of Catenis API to target
     //    }
     function ApiClient(deviceId, apiAccessSecret, options) {
         var _host = 'catenis.io';
         var _subdomain = '';
         var _secure = true;
-        var _version = '0.3';
+        var _version = '0.4';
 
         if (typeof options === 'object' && options !== null) {
             _host = typeof options.host === 'string' && options.host.length > 0 ? options.host : _host;
@@ -47,11 +53,17 @@
 
         this.host = _subdomain + _host;
         this.uriPrefix = (_secure ? 'https://' : 'http://') + this.host;
-        this.rootApiEndPoint = this.uriPrefix + apiPath + _version;
+        this.apiBaseUriPath = apiPath + _version;
+        this.rootApiEndPoint = this.uriPrefix + this.apiBaseUriPath;
         this.deviceId = deviceId;
         this.apiAccessSecret = apiAccessSecret;
         this.lastSignDate = undefined;
         this.lastSignKey = undefined;
+        this.wsUriScheme = _secure ? 'wss://' : 'ws://';
+        this.wsUriPrefix = this.wsUriScheme + this.host;
+        this.qualifiedNotifyRooPath = apiPath + notifyRootPath;
+        this.wsNtfyBaseUriPath = this.qualifiedNotifyRooPath + (wsNtfyRootPath.length > 0 ? '/' : '') + wsNtfyRootPath;
+        this.rootWsNtfyEndPoint = this.wsUriPrefix + this.wsNtfyBaseUriPath;
 
         this.reqParams = {};
     }
@@ -86,7 +98,7 @@
 
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
-        postRequest.call(this, 'messages/log', data, {
+        postRequest.call(this, 'messages/log', undefined, data, {
             success: procFunc,
             error: procFunc
         })
@@ -118,7 +130,7 @@
 
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
-        postRequest.call(this, 'messages/send', data, {
+        postRequest.call(this, 'messages/send', undefined, data, {
             success: procFunc,
             error: procFunc
         });
@@ -258,9 +270,121 @@
         });
     };
 
-    function postRequest(methodPath, data, result) {
-        this.reqParams = {
-            url: this.rootApiEndPoint + '/' + methodPath,
+    // List permission events
+    //
+    //  Parameters:
+    //    callback: [Function]  - Callback function
+    ApiClient.prototype.listPermissionEvents = function (callback) {
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'permission/events', undefined, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Retrieve permission rights
+    //
+    //  Parameters:
+    //    eventName: [String]   - Name of permission event
+    //    callback: [Function]  - Callback function
+    ApiClient.prototype.retrievePermissionRights = function (eventName, callback) {
+        var params = {
+            url: [
+                eventName
+            ]
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'permission/:eventName/rights', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Set permission rights
+    //
+    //  Parameters:
+    //    eventName: [String] - Name of permission event
+    //    rights: [Object] {
+    //      system: [String] - (optional) Permission right to be attributed at system level for the specified event. Must be one of the following values: "allow", "deny"
+    //      catenisNode: {   - (optional) Permission rights to be attributed at the Catenis node level for the specified event
+    //        allow: [Array(String)|String],  - (optional) List of indices (or a single index) of Catenis nodes to give allow right
+    //                                        -  Can optionally include the value "self" to refer to the index of the Catenis node to which the device belongs
+    //        deny: [Array(String)|String],   - (optional) List of indices (or a single index) of Catenis nodes to give deny right
+    //                                        -  Can optionally include the value "self" to refer to the index of the Catenis node to which the device belongs
+    //        none: [Array(String)|String]    - (optional) List of indices (or a single index) of Catenis nodes the rights of which should be removed.
+    //                                        -  Can optionally include the value "self" to refer to the index of the Catenis node to which the device belongs.
+    //                                        -  The wildcard character ("*") can also be used to indicate that the rights for all Catenis nodes should be remove
+    //      },
+    //      client: {   - (optional) Permission rights to be attributed at the client level for the specified event
+    //        allow: [Array(String)|String],  - (optional) List of IDs (or a single ID) of clients to give allow right
+    //                                        -  Can optionally include the value "self" to refer to the ID of the client to which the device belongs
+    //        deny: [Array(String)|String]    - (optional) List of IDs (or a single ID) of clients to give deny right
+    //                                        -  Can optionally include the value "self" to refer to the ID of the client to which the device belongs
+    //        none: [Array(String)|String]    - (optional) List of IDs (or a single ID) of clients the rights of which should be removed.
+    //                                        -  Can optionally include the value "self" to refer to the ID of the client to which the device belongs
+    //                                        -  The wildcard character ("*") can also be used to indicate that the rights for all clients should be remove
+    //      },
+    //      device: {   - (optional) Permission rights to be attributed at the device level for the specified event
+    //        allow: [{          - (optional) List of IDs (or a single ID) of devices to give allow right
+    //          id: [String],             - ID of the device. Can optionally be replaced with value "self" to refer to the ID of the device itself
+    //          isProdUniqueId [Boolean]  - (optional, default: false) Indicate whether supplied ID is a product unique ID (otherwise, if should be a Catenis device Id)
+    //        }],
+    //        deny: [{           - (optional) List of IDs (or a single ID) of devices to give deny right
+    //          id: [String],             - ID of the device. Can optionally be replaced with value "self" to refer to the ID of the device itself
+    //          isProdUniqueId [Boolean]  - (optional, default: false) Indicate whether supplied ID is a product unique ID (otherwise, if should be a Catenis device Id)
+    //        }],
+    //        none: [{           - (optional) List of IDs (or a single ID) of devices the rights of which should be removed.
+    //          id: [String],             - ID of the device. Can optionally be replaced with value "self" to refer to the ID of the device itself
+    //                                    -  The wildcard character ("*") can also be used to indicate that the rights for all devices should be remove
+    //          isProdUniqueId [Boolean]  - (optional, default: false) Indicate whether supplied ID is a product unique ID (otherwise, if should be a Catenis device Id)
+    //        }]
+    //      }
+    //    }
+    //    callback: [Function]    - Callback function
+    ApiClient.prototype.setPermissionRights = function (eventName, rights, callback) {
+        var params = {
+            url: [
+                eventName
+            ]
+        };
+
+        var data = rights;
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        postRequest.call(this, 'permission/:eventName/rights', params, data, {
+            success: procFunc,
+            error: procFunc
+        })
+    };
+
+    // List notification events
+    //
+    //  Parameters:
+    //    callback: [Function]  - Callback function
+    ApiClient.prototype.listNotificationEvents = function (callback) {
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'notification/events', undefined, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Create WebSocket Notification Channel
+    //
+    //  Parameters:
+    //    eventName: [String] - Name of Catenis notification event
+    ApiClient.prototype.createWsNotifyChannel = function (eventName) {
+        return new WsNotifyChannel(this, eventName);
+    };
+
+    function postRequest(methodPath, params, data, result) {
+        var reqParams = {
+            url: this.rootApiEndPoint + '/' + formatMethodPath(methodPath, params),
             contentType: "application/json",
             processData: false,
             data: JSON.stringify(data),
@@ -269,49 +393,25 @@
             error: result.error
         };
 
-        signRequest.call(this);
+        signRequest.call(this, reqParams);
 
-        _jQuery.ajax(this.reqParams);
+        _jQuery.ajax(reqParams);
     }
 
     function getRequest(methodPath, params, result) {
-        if (typeof params === 'object' && params !== null) {
-            if (typeof params.url === 'object' && Array.isArray(params.url)) {
-                /*params.url.forEach(function (urlParam) {
-                    url += '/' + encodeURI(urlParam);
-                });*/
-                params.url.forEach(function (urlParam) {
-                    methodPath = methodPath.replace(/:\w+/, encodeURI(urlParam));
-                });
-            }
-
-            if (typeof params.query === 'object' && params.query !== null) {
-                var queryStr = '';
-                for (var queryParam in params.query) {
-                    if (queryStr.length > 0) {
-                        queryStr += '&';
-                    }
-                    queryStr += encodeURI(queryParam) + '=' + encodeURI(params.query[queryParam]);
-                }
-                if (queryStr.length > 0) {
-                    methodPath += '?' + queryStr;
-                }
-            }
-        }
-
-        this.reqParams = {
-            url: this.rootApiEndPoint + '/' + methodPath,
+        var reqParams = {
+            url: this.rootApiEndPoint + '/' + formatMethodPath(methodPath, params),
             type: "GET",
             success: result.success,
             error: result.error
         };
 
-        signRequest.call(this);
+        signRequest.call(this, reqParams);
 
-        _jQuery.ajax(this.reqParams);
+        _jQuery.ajax(reqParams);
     }
 
-    function signRequest() {
+    function signRequest(reqParams) {
         // Add timestamp header
         var now = _moment();
         var timestamp = _moment.utc(now).format('YYYYMMDDTHHmmss[Z]');
@@ -327,18 +427,18 @@
             useSameSignKey = false;
         }
 
-        this.reqParams.headers = this.reqParams.headers || {};
-        this.reqParams.headers[timestampHdr] = timestamp;
+        reqParams.headers = reqParams.headers || {};
+        reqParams.headers[timestampHdr] = timestamp;
 
         // First step: compute conformed request
-        var confReq = this.reqParams.type + '\n';
-        confReq += this.reqParams.url.substr(this.uriPrefix.length) + '\n';
+        var confReq = reqParams.type + '\n';
+        confReq += reqParams.url.substr(reqParams.url.search(apiPath)) + '\n';
 
         var essentialHeaders = 'host:' + this.host + '\n';
-        essentialHeaders += timestampHdr.toLowerCase() + ':' + this.reqParams.headers[timestampHdr] + '\n';
+        essentialHeaders += timestampHdr.toLowerCase() + ':' + reqParams.headers[timestampHdr] + '\n';
 
         confReq += essentialHeaders + '\n';
-        confReq += hashData(this.reqParams.data || '') + '\n';
+        confReq += hashData(reqParams.data || '') + '\n';
 
         // Second step: assemble string to find
         var strToSign = signMethodId + '\n';
@@ -360,10 +460,15 @@
             signKey = this.lastSignKey = signData(scopeRequest, dateKey);
         }
 
-        var signature = signData(strToSign, signKey, true);
+        var result = {
+            credential: this.deviceId + '/' + scope,
+            signature: signData(strToSign, signKey, true)
+        };
 
         // Step four: add authorization header
-        this.reqParams.headers.Authorization = signMethodId + ' Credential=' + this.deviceId + '/' + scope + ', Signature=' + signature;
+        reqParams.headers.Authorization = signMethodId + ' Credential=' + result.credential  + ', Signature=' + result.signature;
+
+        return result;
     }
 
     function hashData(data) {
@@ -377,6 +482,130 @@
         return hexEncode ? _sjcl.codec.hex.fromBits(result) : result;
     }
 
+    function formatMethodPath(methodPath, params) {
+        var formattedMethodPath = methodPath;
+
+        if (typeof params === 'object' && params !== null) {
+            if (typeof params.url === 'object' && Array.isArray(params.url)) {
+                params.url.forEach(function (urlParam) {
+                    formattedMethodPath = formattedMethodPath.replace(/:\w+/, encodeURI(urlParam));
+                });
+            }
+
+            if (typeof params.query === 'object' && params.query !== null) {
+                var queryStr = '';
+                for (var queryParam in params.query) {
+                    if (queryStr.length > 0) {
+                        queryStr += '&';
+                    }
+                    queryStr += encodeURI(queryParam) + '=' + encodeURI(params.query[queryParam]);
+                }
+                if (queryStr.length > 0) {
+                    formattedMethodPath += '?' + queryStr;
+                }
+            }
+        }
+
+        return formattedMethodPath;
+    }
+
+    // WebSocket Notification Channel function class constructor
+    //
+    //  Parameters:
+    //    apiClient: [Object] - Instance of API Client function class
+    //    eventName: [String] - Name of Catenis notification event
+    //
+    //  Events:
+    //    'error'   - WebSocket error. Handler parameters: error
+    //    'close'   - WebSocket connection closed. Handler parameters: code [Number], reason [String]
+    //    'message' - Data received. Handler parameters: data [????]
+    function WsNotifyChannel(apiClient, eventName) {
+        this.apiClient = apiClient;
+        this.eventName = eventName;
+    }
+
+    // Make NotifyChannel to inherit from EventEmitter
+    _heir.inherit(WsNotifyChannel, _EventEmitter, true);
+
+    WsNotifyChannel.prototype.open = function (cb) {
+        // Make sure that WebSocket has not been instantiated yet
+        if (this.ws === undefined) {
+            var wsNtfyEndpointUrl = getSignedWsConnectRequestUrl.call(this);
+
+            this.ws = new WebSocket(wsNtfyEndpointUrl, notifyWsSubprotocol);
+
+            var self = this;
+
+            this.ws.addEventListener('open', function (open) {
+                if (typeof cb === 'function') {
+                    // Call callback to indicate that WebSocket connection is open
+                    cb.call(self);
+                }
+            });
+
+            this.ws.addEventListener('error', function (error) {
+                if (this.readState === WebSocket.CONNECTING) {
+                    // Error while trying to open WebSocket connection
+                    if (typeof cb === 'function') {
+                        // Call callback passing the error
+                        cb.call(self, error);
+
+                        // Close the connection
+                        this.close(1011);
+                    }
+                }
+                else {
+                    // Emit error event
+                    self.emitEvent('error', [error]);
+
+                    if (this.readState !== WebSocket.CLOSING && this.readState !== WebSocket.CLOSED) {
+                        // Close the connection
+                        this.close(1011);
+                    }
+                }
+            });
+
+            this.ws.addEventListener('close', function (close) {
+                // Emit close event
+                self.emitEvent('close', [close.code, close.reason]);
+
+                // Terminate instantiated WebSocket
+                self.ws = undefined;
+            });
+
+            this.ws.addEventListener('message', function (message) {
+                // Emit message event passing the received data
+                self.emitEvent('message', [message.data]);
+            });
+        }
+    };
+
+    WsNotifyChannel.prototype.close = function () {
+        // Make sure that WebSocket is instantiated and open
+        if (this.ws !== undefined && this.ws.readyState === WebSocket.OPEN) {
+            // Close the WebSocket connection
+            this.ws.close(1000);
+        }
+    };
+
+    function getSignedWsConnectRequestUrl() {
+        var reqParams = {
+            url: this.apiClient.rootWsNtfyEndPoint + '/' + this.eventName,
+            type: "GET"
+        };
+
+        var signResult = signRequest.call(this.apiClient, reqParams);
+
+        // Add credentials to URL:
+        //  username: credential + '#' + timestamp
+        //  password: signature
+        this.wsUriPrefix = this.wsUriScheme + this.host;
+
+        return reqParams.url.replace(this.apiClient.wsUriPrefix,
+                this.apiClient.wsUriScheme + encodeURIComponent(signResult.credential + '#' + reqParams.headers[timestampHdr]) +
+                ':' + encodeURIComponent(signResult.signature) + '@' + this.apiClient.host);
+    }
+
     // Export function class
     context.CtnApiClient = ApiClient;
-})(this);
+})(this || {});
