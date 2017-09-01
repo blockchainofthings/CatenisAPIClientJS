@@ -530,13 +530,25 @@
     WsNotifyChannel.prototype.open = function (cb) {
         // Make sure that WebSocket has not been instantiated yet
         if (this.ws === undefined) {
-            var wsNtfyEndpointUrl = getSignedWsConnectRequestUrl.call(this);
+            // NOTE: this request is only used to retrieve that data used for authentication,
+            //        which is done by sending ta message right after the connection is open.
+            //        The actual request used to establish the WebSocket connection is (which
+            //        has no authentication info) is created and sent by the WebSocket object
+            var wsReq = getSignedWsConnectRequest.call(this);
 
-            this.ws = new WebSocket(wsNtfyEndpointUrl, notifyWsSubprotocol);
+            this.ws = new WebSocket(wsReq.url, notifyWsSubprotocol);
 
             var self = this;
 
             this.ws.addEventListener('open', function (open) {
+                // Send authentication message
+                var authMsgData = {};
+
+                authMsgData[timestampHdr.toLocaleLowerCase()] = wsReq.headers[timestampHdr];
+                authMsgData.authorization = wsReq.headers.Authorization;
+
+                this.send(JSON.stringify(authMsgData));
+
                 if (typeof cb === 'function') {
                     // Call callback to indicate that WebSocket connection is open
                     cb.call(self);
@@ -588,22 +600,15 @@
         }
     };
 
-    function getSignedWsConnectRequestUrl() {
+    function getSignedWsConnectRequest() {
         var reqParams = {
             url: this.apiClient.rootWsNtfyEndPoint + '/' + this.eventName,
             type: "GET"
         };
 
-        var signResult = signRequest.call(this.apiClient, reqParams);
+        signRequest.call(this.apiClient, reqParams);
 
-        // Add credentials to URL:
-        //  username: credential + '#' + timestamp
-        //  password: signature
-        this.wsUriPrefix = this.wsUriScheme + this.host;
-
-        return reqParams.url.replace(this.apiClient.wsUriPrefix,
-                this.apiClient.wsUriScheme + encodeURIComponent(signResult.credential + '#' + reqParams.headers[timestampHdr]) +
-                ':' + encodeURIComponent(signResult.signature) + '@' + this.apiClient.host);
+        return reqParams;
     }
 
     // Export function class
