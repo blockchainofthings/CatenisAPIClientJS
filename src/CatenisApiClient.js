@@ -297,7 +297,7 @@
 
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
-        getRequest.call(this, 'permission/:eventName/rights', params, {
+        getRequest.call(this, 'permission/events/:eventName/rights', params, {
             success: procFunc,
             error: procFunc
         });
@@ -355,10 +355,39 @@
 
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
-        postRequest.call(this, 'permission/:eventName/rights', params, data, {
+        postRequest.call(this, 'permission/events/:eventName/rights', params, data, {
             success: procFunc,
             error: procFunc
-        })
+        });
+    };
+
+    // Check effective permission right
+    //
+    //  Parameters:
+    //    eventName [String]        - Name of the permission event
+    //    deviceId [String]         - ID of the device to check the permission right applied to it. Can optionally be replaced with value "self" to refer to the ID of the device that issued the request
+    //    isProdUniqueId: [Boolean] - (default: false) Indicates whether the deviceId parameter should be interpreted as a product unique ID (otherwise, it is interpreted as a Catenis device Id)
+    //    callback: [Function]      - Callback function
+    ApiClient.prototype.checkEffectivePermissionRight = function (eventName, deviceId, isProdUniqueId, callback) {
+        var params = {
+            url: [
+                eventName,
+                deviceId
+            ]
+        };
+
+        if (isProdUniqueId) {
+            params.query = {
+                isProdUniqueId: isProdUniqueId
+            };
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'permission/events/:eventName/rights/:deviceId', params, {
+            success: procFunc,
+            error: procFunc
+        });
     };
 
     // List notification events
@@ -369,6 +398,33 @@
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
         getRequest.call(this, 'notification/events', undefined, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Retrieve device identification information
+    //
+    //  Parameters:
+    //    deviceId [String]         - ID of the device the identification information of which is to be retrieved. Can optionally be replaced with value "self" to refer to the ID of the device that issued the request
+    //    isProdUniqueId: [Boolean] - (default: false) Indicates whether the deviceId parameter should be interpreted as a product unique ID (otherwise, it is interpreted as a Catenis device Id)
+    //    callback: [Function]      - Callback function
+    ApiClient.prototype.retrieveDeviceIdentificationInfo = function (deviceId, isProdUniqueId, callback) {
+        var params = {
+            url: [
+                deviceId
+            ]
+        };
+
+        if (isProdUniqueId) {
+            params.query = {
+                isProdUniqueId: isProdUniqueId
+            };
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'devices/:deviceId', params, {
             success: procFunc,
             error: procFunc
         });
