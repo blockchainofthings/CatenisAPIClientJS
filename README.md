@@ -2,7 +2,7 @@
 
 This Javascript library is used to make it easier to access the Catenis API services from a web browser.
 
-This current release (1.2.0) targets version 0.3 of the Catenis API.
+This current release (1.3.0) targets version 0.4 of the Catenis API.
 
 ## Development
 
@@ -118,6 +118,107 @@ ctnApiClient.retrieveMessageContainer({
         readState: 'unread',
         startDate: '20170101T000000Z'
     },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+        }
+});
+```
+
+### List permission events
+
+```shell
+ctnApiClient.listPermissionEvents(function (err, data) {
+    if (err) {
+        // Process error
+    }
+    else {
+        // Process returned data
+    }
+});
+```
+
+### Retrieve permission rights
+
+```shell
+ctnApiClient.retrievePermissionRights('receive_msg',
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+        }
+});
+```
+
+### Set permission rights
+
+```shell
+ctnApiClient.setPermissionRights('receive_msg', {
+        system: 'deny',
+        catenisNode: {
+            allow: 'self'
+        },
+        client: {
+            allow: [
+                'self',
+                clientId
+            ]
+        },
+        device: {
+            deny: [{
+                id: deviceId1
+            }, {
+                id: 'ABCD001',
+                isProdUniqueId: true
+            }]
+        }
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+        }
+});
+```
+
+### Check effective permission right
+
+```shell
+ctnApiClient.checkEffectivePermissionRight('receive_msg', deviceId, false,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+        }
+});
+```
+
+### List notification events
+
+```shell
+ctnApiClient.listNotificationEvents(function (err, data) {
+    if (err) {
+        // Process error
+    }
+    else {
+        // Process returned data
+    }
+});
+```
+
+### Retrieve device identification information
+
+```shell
+ctnApiClient.retrieveDeviceIdentificationInfo(deviceId, false,
     function (err, data) {
         if (err) {
             // Process error
