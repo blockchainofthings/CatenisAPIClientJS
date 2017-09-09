@@ -205,7 +205,7 @@
     //      toDeviceProdUniqueIds [String]   - (optional) - Comma separated list containing the product unique ID of the devices to which
     //                                          the messages intended to be retrieved had been sent. Note that this option only
     //                                          applies to messages sent from the device that issued the request (action = "send" and direction = "outbound")
-    //      readState [String]               - (optional, default: "any") - One of the following values indicating the current read state of the
+    //      readyState [String]               - (optional, default: "any") - One of the following values indicating the current read state of the
     //                                          the messages intended to be retrieved: "unread"|"read"|"any".
     //      startDate [String]               - (optional) - ISO 8601 formatted date and time specifying the lower boundary of the time frame within
     //                                          which the messages intended to be retrieved has been: logged, in case of messages logged
@@ -249,8 +249,8 @@
                 params.query.toDeviceProdUniqueIds = options.toDeviceProdUniqueIds;
             }
 
-            if (options.readState) {
-                params.query.readState = options.readState;
+            if (options.readyState) {
+                params.query.readyState = options.readyState;
             }
 
             if (options.startDate) {
@@ -612,7 +612,7 @@
             });
 
             this.ws.addEventListener('error', function (error) {
-                if (this.readState === WebSocket.CONNECTING) {
+                if (this.readyState === WebSocket.CONNECTING) {
                     // Error while trying to open WebSocket connection
                     if (typeof cb === 'function') {
                         // Call callback passing the error
@@ -626,7 +626,7 @@
                     // Emit error event
                     self.emitEvent('error', [error]);
 
-                    if (this.readState !== WebSocket.CLOSING && this.readState !== WebSocket.CLOSED) {
+                    if (this.readyState !== WebSocket.CLOSING && this.readyState !== WebSocket.CLOSED) {
                         // Close the connection
                         this.close(1011);
                     }
