@@ -205,7 +205,7 @@
     //      toDeviceProdUniqueIds [String]   - (optional) - Comma separated list containing the product unique ID of the devices to which
     //                                          the messages intended to be retrieved had been sent. Note that this option only
     //                                          applies to messages sent from the device that issued the request (action = "send" and direction = "outbound")
-    //      readyState [String]               - (optional, default: "any") - One of the following values indicating the current read state of the
+    //      readState [String]               - (optional, default: "any") - One of the following values indicating the current read state of the
     //                                          the messages intended to be retrieved: "unread"|"read"|"any".
     //      startDate [String]               - (optional) - ISO 8601 formatted date and time specifying the lower boundary of the time frame within
     //                                          which the messages intended to be retrieved has been: logged, in case of messages logged
@@ -249,8 +249,8 @@
                 params.query.toDeviceProdUniqueIds = options.toDeviceProdUniqueIds;
             }
 
-            if (options.readyState) {
-                params.query.readyState = options.readyState;
+            if (options.readState) {
+                params.query.readState = options.readState;
             }
 
             if (options.startDate) {
