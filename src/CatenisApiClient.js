@@ -36,13 +36,13 @@
     //      host: [String],             - (optional, default: catenis.io) Host name (with optional port) of target Catenis API server
     //      environment: [String],      - (optional, default: 'prod') Environment of target Catenis API server. Valid values: 'prod', 'beta'
     //      secure: [Boolean],          - (optional, default: true) Indicates whether a secure connection (HTTPS) should be used
-    //      version: [String]           - (optional, default: 0.4) Version of Catenis API to target
+    //      version: [String]           - (optional, default: 0.5) Version of Catenis API to target
     //    }
     function ApiClient(deviceId, apiAccessSecret, options) {
         var _host = 'catenis.io';
         var _subdomain = '';
         var _secure = true;
-        var _version = '0.4';
+        var _version = '0.5';
 
         if (typeof options === 'object' && options !== null) {
             _host = typeof options.host === 'string' && options.host.length > 0 ? options.host : _host;
@@ -113,9 +113,10 @@
     //    },
     //    message: [String],            - The message to send
     //    options: [Object] (optional) {
-    //      encoding: [String],         - (optional, default: "utf8") One of the following values identifying the encoding of the message: "utf8"|"base64"|"hex"
-    //      encrypt:  [Boolean],        - (optional, default: true) Indicates whether message should be encrypted before storing
-    //      storage: [String]           - (optional, default: "auto") One of the following values identifying where the message should be stored: "auto"|"embedded"|"external"
+    //      readConfirmation: [Boolean], - (optional, default: false) Indicates whether message should be sent with read confirmation enabled
+    //      encoding: [String],          - (optional, default: "utf8") One of the following values identifying the encoding of the message: "utf8"|"base64"|"hex"
+    //      encrypt:  [Boolean],         - (optional, default: true) Indicates whether message should be encrypted before storing
+    //      storage: [String]            - (optional, default: "auto") One of the following values identifying where the message should be stored: "auto"|"embedded"|"external"
     //    }
     //    callback: [Function]          - Callback function
     ApiClient.prototype.sendMessage = function (targetDevice, message, options, callback) {

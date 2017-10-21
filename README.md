@@ -2,7 +2,7 @@
 
 This Javascript library is used to make it easier to access the Catenis API services from a web browser.
 
-This current release (1.3.0) targets version 0.4 of the Catenis API.
+This current release (1.4.0) targets version 0.5 of the Catenis API.
 
 ## Development
 
@@ -67,6 +67,7 @@ ctnApiClient.sendMessage({
         isProdUniqueId: false
     },
     'My message to send', {
+        readConfirmation: true,
         encoding: 'utf8',
         encrypt: true,
         storage: 'auto'
