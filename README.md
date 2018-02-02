@@ -1,8 +1,8 @@
-# Catenis API Javascript Client
+# Catenis API JavaScript Client
 
-This Javascript library is used to make it easier to access the Catenis API services from a web browser.
+This JavaScript library is used to make it easier to access the Catenis Enterprise API services from a web browser.
 
-This current release (1.4.0) targets version 0.5 of the Catenis API.
+This current release (1.4.0) targets version 0.5 of the Catenis Enterprise API.
 
 ## Development
 
@@ -18,7 +18,7 @@ npm install
 
 ### Build
 
-Then issue the following command to generate the Javascript library (CatenisAPIClientJS.min.js), which should
+Then issue the following command to generate the JavaScript library (CatenisAPIClientJS.min.js), which should
 be saved to the ``build`` directory along with its corresponding map file (CatenisAPIClientJS.min.map).
 
 ```shell
@@ -113,7 +113,7 @@ ctnApiClient.retrieveMessageContainer(messageId,
 ### List messages
 
 ```shell
-ctnApiClient.retrieveMessageContainer({
+ctnApiClient.listMessages({
         action: 'send',
         direction: 'inbound',
         readState: 'unread',
@@ -230,8 +230,45 @@ ctnApiClient.retrieveDeviceIdentificationInfo(deviceId, false,
 });
 ```
 
+### Receiving notifications
+
+Instantiate WebSocket notification channel object.
+
+```shell
+var wsNtfyChannel = ctnApiClient.createWsNotifyChannel(eventName);
+```
+
+Add listeners.
+
+```shell
+wsNtfyChannel.addListener('error', function (error) {
+    // Process error
+});
+
+wsNtfyChannel.addListener('close', function (code, reason) {
+    // Process indication that WebSocket connection has been closed
+});
+
+wsNtfyChannel.addListener('message', function (data) {
+    // Process received notification message
+});
+```
+
+Open notification channel.
+
+```shell
+wsNtfyChannel.open(function (err) {
+    if (err) {
+        // Process WebSocket connection error
+    }
+    else {
+        // Process indication that WebSocket connection is open
+    }
+});
+```
+
 ## License
 
-This Javascript library is released under the [MIT License](LICENSE). Feel free to fork, and modify!
+This JavaScript library is released under the [MIT License](LICENSE). Feel free to fork, and modify!
 
-Copyright © 2017, Blockchain of Things Inc.
+Copyright © 2018, Blockchain of Things Inc.
