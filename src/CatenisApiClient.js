@@ -68,12 +68,29 @@
         this.reqParams = {};
     }
 
-    ApiClient.processReturn = function (callback, data, returnType) {
-        if (returnType === 'error') {
-            callback(data);
-        }
-        else if (returnType === 'success') {
+    ApiClient.processReturn = function (callback, data, textStatus, errorThrown) {
+        if (textStatus === 'success') {
             callback(undefined, data);
+        }
+        else {
+            // Check if this is a client of API error
+            var jqXHR = data;
+            var error = {};
+
+            if (jqXHR.status >= 100) {
+                error.apiError = {
+                    httpStatusCode: jqXHR.status,
+                    message: typeof jqXHR.responseJSON === 'object' && jqXHR.responseJSON.message ? jqXHR.responseJSON.message : jqXHR.statusText
+                };
+            }
+            else {
+                error.clientError = {
+                    ajaxClient: jqXHR,
+                    message: 'Ajax client error' + (textStatus ? ' (' + textStatus + ')' : '') + (errorThrown ? ': ' + errorThrown : '')
+                }
+            }
+
+            callback(error);
         }
     };
 
