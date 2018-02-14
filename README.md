@@ -2,7 +2,7 @@
 
 This JavaScript library is used to make it easier to access the Catenis Enterprise API services from a web browser.
 
-This current release (1.4.0) targets version 0.5 of the Catenis Enterprise API.
+This current release (1.6.0) targets version 0.5 of the Catenis Enterprise API.
 
 ## Development
 
@@ -41,6 +41,19 @@ var ctnApiClient = new CtnApiClient(deviceId, apiAccessSecret, {
 });
 ```
 
+### Returned data
+
+On successful calls to the Catenis API, the data returned by the client library methods **only** include the `data` property of the JSON
+originally returned in response to a Catenis API request.
+
+For example, you should expect the following data structure to be returned from a successful call to the `logMessage` method:
+
+```JavaScript
+{
+    messageId: "<message_id>"
+}
+```
+
 ### Logging (storing) a message to the blockchain
 
 ```JavaScript
@@ -55,6 +68,7 @@ ctnApiClient.logMessage('My message', {
         }
         else {
             // Process returned data
+            console.log('ID of logged message:', data.messageId);
         }
 });
 ```
@@ -78,6 +92,7 @@ ctnApiClient.sendMessage({
         }
         else {
             // Process returned data
+            console.log('ID of sent message:', data.messageId);
         }
 });
 ```
@@ -92,6 +107,11 @@ ctnApiClient.readMessage(messageId, 'utf8',
         }
         else {
             // Process returned data
+            console.log('Message read:', data.message);
+            
+            if (data.action === 'send') {
+                console.log('Message originally sent from:', data.from);
+            }
         }
 });
 ```
@@ -106,6 +126,12 @@ ctnApiClient.retrieveMessageContainer(messageId,
         }
         else {
             // Process returned data
+            if (data.blockchain) {
+                console.log('ID of blockchain transaction containing the message:', data.blockchain.txid);
+            }
+            else if (data.externalStorage.ipfs) {
+                console.log('IPFS reference to message:', data.externalStorage.ipfs);
+            }
         }
 });
 ```
@@ -125,6 +151,13 @@ ctnApiClient.listMessages({
         }
         else {
             // Process returned data
+            if (data.msgCount > 0) {
+                console.log('Returned messages:', data.messages);
+                
+                if (data.countExceeded) {
+                    console.log('Warning: not all messages fulfilling search criteria have been returned!';
+                }
+            }
         }
 });
 ```
@@ -138,6 +171,9 @@ ctnApiClient.listPermissionEvents(function (err, data) {
     }
     else {
         // Process returned data
+        Object.keys(data).forEach(function (eventName) {
+            console.log('Event name:', eventName, '; event description:', data[eventName]);
+        });
     }
 });
 ```
@@ -152,6 +188,37 @@ ctnApiClient.retrievePermissionRights('receive_msg',
         }
         else {
             // Process returned data
+            console.log('Default (system) permission right:', data.system);
+            
+            if (data.catenisNode) {
+                if (data.catenisNode.allow) {
+                    console.log('Index of Catenis nodes with \'allow\' permission right:', data.catenisNode.allow);
+                }
+                
+                if (data.catenisNode.deny) {
+                    console.log('Index of Catenis nodes with \'deny\' permission right:', data.catenisNode.deny);
+                }
+            }
+            
+            if (data.client) {
+                if (data.client.allow) {
+                    console.log('ID of clients with \'allow\' permission right:', data.client.allow);
+                }
+                
+                if (data.client.deny) {
+                    console.log('ID of clients with \'deny\' permission right:', data.client.deny);
+                }
+            }
+            
+            if (data.device) {
+                if (data.device.allow) {
+                    console.log('Devices with \'allow\' permission right:', data.device.allow);
+                }
+                
+                if (data.device.deny) {
+                    console.log('Devices with \'deny\' permission right:', data.device.deny);
+                }
+            }
         }
 });
 ```
@@ -185,6 +252,7 @@ ctnApiClient.setPermissionRights('receive_msg', {
         }
         else {
             // Process returned data
+            console.log('Permission rights successfully set');
         }
 });
 ```
@@ -199,6 +267,9 @@ ctnApiClient.checkEffectivePermissionRight('receive_msg', deviceId, false,
         }
         else {
             // Process returned data
+            var deviceId = Object.keys(data)[0];
+            
+            console.log('Effective right for device', deviceId, ':', data[deviceId]);
         }
 });
 ```
@@ -212,6 +283,9 @@ ctnApiClient.listNotificationEvents(function (err, data) {
     }
     else {
         // Process returned data
+        Object.keys(data).forEach(function (eventName) {
+            console.log('Event name:', eventName, '; event description:', data[eventName]);
+        });
     }
 });
 ```
@@ -226,6 +300,9 @@ ctnApiClient.retrieveDeviceIdentificationInfo(deviceId, false,
         }
         else {
             // Process returned data
+            console.log('Device\'s Catenis node ID info:', data.catenisNode);
+            console.log('Device\'s client ID info:', data.client);
+            console.log('Device\'s own ID info:', data.device);
         }
 });
 ```
@@ -251,6 +328,7 @@ wsNtfyChannel.addListener('close', function (code, reason) {
 
 wsNtfyChannel.addListener('message', function (data) {
     // Process received notification message
+    console.log('Received notification message:', data);
 });
 ```
 

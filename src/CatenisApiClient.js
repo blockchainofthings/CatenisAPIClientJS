@@ -70,7 +70,7 @@
 
     ApiClient.processReturn = function (callback, data, textStatus, errorThrown) {
         if (textStatus === 'success') {
-            callback(undefined, data);
+            callback(undefined, typeof data === 'object' && data.data ? data.data : data);
         }
         else {
             // Check if this is a client of API error
