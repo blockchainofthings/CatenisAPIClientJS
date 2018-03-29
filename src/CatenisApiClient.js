@@ -42,7 +42,7 @@
         var _host = 'catenis.io';
         var _subdomain = '';
         var _secure = true;
-        var _version = '0.5';
+        var _version = '0.6';
 
         if (typeof options === 'object' && options !== null) {
             _host = typeof options.host === 'string' && options.host.length > 0 ? options.host : _host;
@@ -384,7 +384,7 @@
     //  Parameters:
     //    eventName [String]        - Name of the permission event
     //    deviceId [String]         - ID of the device to check the permission right applied to it. Can optionally be replaced with value "self" to refer to the ID of the device that issued the request
-    //    isProdUniqueId: [Boolean] - (default: false) Indicates whether the deviceId parameter should be interpreted as a product unique ID (otherwise, it is interpreted as a Catenis device Id)
+    //    isProdUniqueId: [Boolean] - (optional, default: false) Indicates whether the deviceId parameter should be interpreted as a product unique ID (otherwise, it is interpreted as a Catenis device Id)
     //    callback: [Function]      - Callback function
     ApiClient.prototype.checkEffectivePermissionRight = function (eventName, deviceId, isProdUniqueId, callback) {
         var params = {
@@ -425,7 +425,7 @@
     //
     //  Parameters:
     //    deviceId [String]         - ID of the device the identification information of which is to be retrieved. Can optionally be replaced with value "self" to refer to the ID of the device that issued the request
-    //    isProdUniqueId: [Boolean] - (default: false) Indicates whether the deviceId parameter should be interpreted as a product unique ID (otherwise, it is interpreted as a Catenis device Id)
+    //    isProdUniqueId: [Boolean] - (optional, default: false) Indicates whether the deviceId parameter should be interpreted as a product unique ID (otherwise, it is interpreted as a Catenis device Id)
     //    callback: [Function]      - Callback function
     ApiClient.prototype.retrieveDeviceIdentificationInfo = function (deviceId, isProdUniqueId, callback) {
         var params = {
@@ -443,6 +443,291 @@
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
         getRequest.call(this, 'devices/:deviceId', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Issue an amount of a new asset
+    //
+    //  Parameters:
+    //    assetInfo: {         - Information for creating new asset
+    //      name: [String],           - The name of the asset
+    //      description: [String],    - (optional) The description of the asset
+    //      canReissue: [Boolean],    - Indicates whether more units of this asset can be issued at another time (an unlocked asset)
+    //      decimalPlaces: [Number]   - The number of decimal places that can be used to specify a fractional amount of this asset
+    //    }
+    //    amount: [Number]     - Amount of asset to be issued (expressed as a fractional amount)
+    //    holdingDevice: {     - (optional, default: device that issues the request) Device for which the asset is issued and that shall hold the total issued amount
+    //      id: [String],             - ID of holding device. Should be a Catenis device ID unless isProdUniqueId is true
+    //      isProdUniqueId: [Boolean] - (optional, default: false) Indicate whether supplied ID is a product unique ID (otherwise,
+    //                                   it should be a Catenis device Id)
+    //    }
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.issueAsset = function (assetInfo, amount, holdingDevice, callback) {
+        var data = {
+            assetInfo: assetInfo,
+            amount: amount
+        };
+
+        if (holdingDevice) {
+            data.holdingDevice = holdingDevice;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        postRequest.call(this, 'assets/issue', undefined, data, {
+            success: procFunc,
+            error: procFunc
+        })
+    };
+
+    // Issue more amount of an existing asset
+    //
+    //  Parameters:
+    //    assetId [String]     - ID of asset to issue more amount of it
+    //    amount: [Number]     - Amount of asset to be issued (expressed as a fractional amount)
+    //    holdingDevice: {     - (optional, default: device that issues the request) Device for which the asset is issued and that shall hold the total issued amount
+    //      id: [String],              - ID of holding device. Should be a Catenis device ID unless isProdUniqueId is true
+    //      isProdUniqueId: [Boolean]  - (optional, default: false) Indicate whether supplied ID is a product unique ID (otherwise,
+    //                                    it should be a Catenis device Id)
+    //    }
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.reissueAsset = function (assetId, amount, holdingDevice, callback) {
+        var params = {
+            url: [
+                assetId
+            ]
+        };
+
+        var data = {
+            amount: amount
+        };
+
+        if (holdingDevice) {
+            data.holdingDevice = holdingDevice;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        postRequest.call(this, 'assets/:assetId/issue', params, data, {
+            success: procFunc,
+            error: procFunc
+        })
+    };
+
+    // Transfer an amount of an asset to a device
+    //
+    //  Parameters:
+    //    assetId [String]     - ID of asset to issue more amount of it
+    //    amount: [Number]     - Amount of asset to be transferred (expressed as a fractional amount)
+    //    receivingDevice: {   - Device to which the asset is to be transferred
+    //      id: [String],              - ID of receiving device. Should be a Catenis device ID unless isProdUniqueId is true
+    //      isProdUniqueId: [Boolean]  - (optional, default: false) Indicate whether supplied ID is a product unique ID (otherwise,
+    //                                     it should be a Catenis device Id)
+    //    },
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.transferAsset = function (assetId, amount, receivingDevice, callback) {
+        var params = {
+            url: [
+                assetId
+            ]
+        };
+
+        var data = {
+            amount: amount,
+            receivingDevice: receivingDevice
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        postRequest.call(this, 'assets/:assetId/transfer', params, data, {
+            success: procFunc,
+            error: procFunc
+        })
+    };
+
+    // Retrieve information about a given asset
+    //
+    //  Parameters:
+    //    assetId [String]     - ID of asset to transfer an amount of it
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.retrieveAssetInfo = function (assetId, callback) {
+        var params = {
+            url: [
+                assetId
+            ]
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/:assetId', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Get the current balance of a given asset held by the device
+    //
+    //  Parameters:
+    //    assetId [String]     - ID of asset to get balance
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.getAssetBalance = function (assetId, callback) {
+        var params = {
+            url: [
+                assetId
+            ]
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/:assetId/balance', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // List assets owned by the device
+    //
+    //  Parameters:
+    //    limit: [Number]      - (optional, default: 500) Maximum number of list items that should be returned
+    //    skip: [Number]       - (optional, default: 0) Number of list items that should be skipped (from beginning of list) and not returned
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.listOwnedAssets = function (limit, skip, callback) {
+        var params = undefined;
+
+        if (limit) {
+            params = {
+                query: {
+                    limit: limit
+                }
+            };
+        }
+
+        if (skip) {
+            if (!params) {
+                params = {
+                    query: {}
+                };
+            }
+
+            params.query.skip = skip;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/owned', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // List assets issued by the device
+    //
+    //  Parameters:
+    //    limit: [Number]      - (optional, default: 500) Maximum number of list items that should be returned
+    //    skip: [Number]       - (optional, default: 0) Number of list items that should be skipped (from beginning of list) and not returned
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.listIssuedAssets = function (limit, skip, callback) {
+        var params = undefined;
+
+        if (limit) {
+            params = {
+                query: {
+                    limit: limit
+                }
+            };
+        }
+
+        if (skip) {
+            if (!params) {
+                params = {
+                    query: {}
+                };
+            }
+
+            params.query.skip = skip;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/issued', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Retrieve issuance history for a given asset
+    //
+    //  Parameters:
+    //    assetId [String] - ID of asset to retrieve issuance history
+    //    startDate: [String] - (optional) ISO 8601 formatted date and time specifying the lower boundary of the time frame
+    //                           within which the issuance events intended to be retrieved have occurred. The returned
+    //                           issuance events must have occurred not before that date/time
+    //    endDate: [String] - (optional) ISO 8601 formatted date and time specifying the upper boundary of the time frame
+    //                         within which the issuance events intended to be retrieved have occurred. The returned
+    //                         issuance events must have occurred not after that date/time
+    //    callback: [Function]      - Callback function
+    ApiClient.prototype.retrieveAssetIssuanceHistory = function (assetId, startDate, endDate, callback) {
+        var params = {
+            url: [
+                assetId
+            ]
+        };
+
+        if (startDate) {
+            params.query = {
+                startDate: startDate
+            };
+        }
+
+        if (endDate) {
+            if (!params.query) {
+                params.query = {};
+            }
+
+            params.query.endDate = endDate;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/:assetId/issuance', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // List devices that currently hold any amount of a given asset
+    //
+    //  Parameters:
+    //    assetId [String]     - ID of asset to retrieve issuance history
+    //    limit: [Number]      - (optional, default: 500) Maximum number of list items that should be returned
+    //    skip: [Number]       - (optional, default: 0) Number of list items that should be skipped (from beginning of list) and not returned
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.listAssetHolders = function (assetId, limit, skip, callback) {
+        var params = {
+            url: [
+                assetId
+            ]
+        };
+
+        if (limit) {
+            params.query = {
+                limit: limit
+            };
+        }
+
+        if (skip) {
+            if (!params.query) {
+                params.query = {};
+            }
+
+            params.query.skip = skip;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/:assetId/holders', params, {
             success: procFunc,
             error: procFunc
         });
