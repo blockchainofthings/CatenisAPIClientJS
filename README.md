@@ -2,7 +2,7 @@
 
 This JavaScript library is used to make it easier to access the Catenis Enterprise API services from a web browser.
 
-This current release (1.6.0) targets version 0.5 of the Catenis Enterprise API.
+This current release (1.7.0) targets version 0.6 of the Catenis Enterprise API.
 
 ## Development
 
@@ -303,6 +303,188 @@ ctnApiClient.retrieveDeviceIdentificationInfo(deviceId, false,
             console.log('Device\'s Catenis node ID info:', data.catenisNode);
             console.log('Device\'s client ID info:', data.client);
             console.log('Device\'s own ID info:', data.device);
+        }
+});
+```
+
+### Issuing an amount of a new asset
+
+```JavaScript
+ctnApiClient.issueAsset({
+        name: 'XYZ001'
+        description: 'My first test asset'
+        canReissue: true
+        decimalPlaces: 2
+    }, 1500.00, null,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('ID of newly issued asset:', data.assetId);
+        }
+});
+```
+
+### Issuing more amount of an existing asset
+
+```JavaScript
+ctnApiClient.reissueAsset(assetId, 650.25, {
+        id: otherDeviceId,
+        isProdUniqueId: false
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Total existent asset balance (after issuance):', data.totalExistentBalance);
+        }
+});
+```
+
+### Transferring an amount of an asset to another device
+
+```JavaScript
+ctnApiClient.transferAsset(assetId, 50.75, {
+        id: otherDeviceId,
+        isProdUniqueId: false
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Remaining asset balance:', data.remainingBalance);
+        }
+});
+```
+
+### Retrieving information about a given asset
+
+```JavaScript
+ctnApiClient.retrieveAssetInfo(assetId,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Asset info:', data);
+        }
+});
+```
+
+### Getting the current balance of a given asset held by the device
+
+```JavaScript
+ctnApiClient.getAssetBalance(assetId,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Current asset balance:', data.balance.total);
+            console.log('Amount not yet confirmed:', data.balance.unconfirmed);
+        }
+});
+```
+
+### Listing assets owned by the device
+
+```JavaScript
+ctnApiClient.listOwnedAssets(200, 0,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            data.ownedAssets.forEach(function (ownedAsset, idx) {
+                console.log('Owned asset #', idx + 1, ':');
+                console.log('  - asset ID:', ownedAsset.assetId);
+                console.log('  - current asset balance:', ownedAsset.balance.total);
+                console.log('  - amount not yet confirmed:', ownedAsset.balance.unconfirmed);
+            });
+
+            if (data.hasMore) {
+                console.log('Not all owned assets have been returned');
+            }
+        }
+});
+```
+
+### Listing assets issued by the device
+
+```JavaScript
+ctnApiClient.listIssuedAssets(200, 0,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            data.issuedAssets.forEach(function (issuedAsset, idx) {
+                console.log('Issued asset #', idx + 1, ':');
+                console.log('  - asset ID:', issuedAsset.assetId);
+                console.log('  - total existent balance:', issuedAsset.totalExistentBalance);
+            });
+
+            if (data.hasMore) {
+                console.log('Not all issued assets have been returned');
+            }
+        }
+});
+```
+
+### Retrieving issuance history for a given asset
+
+```JavaScript
+ctnApiClient.retrieveAssetIssuanceHistory(assetId, '20170101T000000Z', null,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            data.issuanceEvents.forEach(function (issuanceEvent, idx) {
+                console.log('Issuance event #', idx + 1, ':');
+                console.log('  - issued amount:', issuanceEvent.amount);
+                console.log('  - device to which issued amount had been assigned:', issuanceEvent.holdingDevice);
+                console.log('  - date of issuance:', issuanceEvent.date);
+            });
+
+            if (data.countExceeded) {
+                console.log('Warning: not all asset issuance events that took place within the specified time frame have been returned!';
+            }
+        }
+});
+```
+
+### Listing devices that currently hold any amount of a given asset
+
+```JavaScript
+ctnApiClient.listAssetHolders(assetId, 200, 0,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            data.assetHolders.forEach(function (assetHolder, idx) {
+                console.log('Asset holder #', idx + 1, ':');
+                console.log('  - device holding an amount of the asset:', assetHolder.holder);
+                console.log('  - amount of asset currently held by device:', assetHolder.balance.total);
+                console.log('  - amount not yet confirmed:', assetHolder.balance.unconfirmed);
+            });
+
+            if (data.hasMore) {
+                console.log('Not all asset holders have been returned');
+            }
         }
 });
 ```
