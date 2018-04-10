@@ -4,8 +4,7 @@
   "main": "src/CatenisApiClientJS.js",
   "license": "MIT",
   "homepage": "https://github.com/blockchainofthings/CatenisAPIClientJS",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "uglify-js": "^2.8.18"
   },
