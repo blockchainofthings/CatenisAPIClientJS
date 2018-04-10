@@ -110,7 +110,7 @@ ctnApiClient.readMessage(messageId, 'utf8',
             console.log('Message read:', data.message);
             
             if (data.action === 'send') {
-                console.log('Message originally sent from:', data.from);
+                console.log('Message originally from:', data.from);
             }
         }
 });
@@ -126,10 +126,9 @@ ctnApiClient.retrieveMessageContainer(messageId,
         }
         else {
             // Process returned data
-            if (data.blockchain) {
-                console.log('ID of blockchain transaction containing the message:', data.blockchain.txid);
-            }
-            else if (data.externalStorage.ipfs) {
+            console.log('ID of blockchain transaction containing the message:', data.blockchain.txid);
+
+            if (data.externalStorage) {
                 console.log('IPFS reference to message:', data.externalStorage.ipfs);
             }
         }
@@ -158,151 +157,6 @@ ctnApiClient.listMessages({
                     console.log('Warning: not all messages fulfilling search criteria have been returned!';
                 }
             }
-        }
-});
-```
-
-### List permission events
-
-```JavaScript
-ctnApiClient.listPermissionEvents(function (err, data) {
-    if (err) {
-        // Process error
-    }
-    else {
-        // Process returned data
-        Object.keys(data).forEach(function (eventName) {
-            console.log('Event name:', eventName, '; event description:', data[eventName]);
-        });
-    }
-});
-```
-
-### Retrieve permission rights
-
-```JavaScript
-ctnApiClient.retrievePermissionRights('receive-msg',
-    function (err, data) {
-        if (err) {
-            // Process error
-        }
-        else {
-            // Process returned data
-            console.log('Default (system) permission right:', data.system);
-            
-            if (data.catenisNode) {
-                if (data.catenisNode.allow) {
-                    console.log('Index of Catenis nodes with \'allow\' permission right:', data.catenisNode.allow);
-                }
-                
-                if (data.catenisNode.deny) {
-                    console.log('Index of Catenis nodes with \'deny\' permission right:', data.catenisNode.deny);
-                }
-            }
-            
-            if (data.client) {
-                if (data.client.allow) {
-                    console.log('ID of clients with \'allow\' permission right:', data.client.allow);
-                }
-                
-                if (data.client.deny) {
-                    console.log('ID of clients with \'deny\' permission right:', data.client.deny);
-                }
-            }
-            
-            if (data.device) {
-                if (data.device.allow) {
-                    console.log('Devices with \'allow\' permission right:', data.device.allow);
-                }
-                
-                if (data.device.deny) {
-                    console.log('Devices with \'deny\' permission right:', data.device.deny);
-                }
-            }
-        }
-});
-```
-
-### Set permission rights
-
-```JavaScript
-ctnApiClient.setPermissionRights('receive-msg', {
-        system: 'deny',
-        catenisNode: {
-            allow: 'self'
-        },
-        client: {
-            allow: [
-                'self',
-                clientId
-            ]
-        },
-        device: {
-            deny: [{
-                id: deviceId1
-            }, {
-                id: 'ABCD001',
-                isProdUniqueId: true
-            }]
-        }
-    },
-    function (err, data) {
-        if (err) {
-            // Process error
-        }
-        else {
-            // Process returned data
-            console.log('Permission rights successfully set');
-        }
-});
-```
-
-### Check effective permission right
-
-```JavaScript
-ctnApiClient.checkEffectivePermissionRight('receive-msg', deviceId, false,
-    function (err, data) {
-        if (err) {
-            // Process error
-        }
-        else {
-            // Process returned data
-            var deviceId = Object.keys(data)[0];
-            
-            console.log('Effective right for device', deviceId, ':', data[deviceId]);
-        }
-});
-```
-
-### List notification events
-
-```JavaScript
-ctnApiClient.listNotificationEvents(function (err, data) {
-    if (err) {
-        // Process error
-    }
-    else {
-        // Process returned data
-        Object.keys(data).forEach(function (eventName) {
-            console.log('Event name:', eventName, '; event description:', data[eventName]);
-        });
-    }
-});
-```
-
-### Retrieve device identification information
-
-```JavaScript
-ctnApiClient.retrieveDeviceIdentificationInfo(deviceId, false,
-    function (err, data) {
-        if (err) {
-            // Process error
-        }
-        else {
-            // Process returned data
-            console.log('Device\'s Catenis node ID info:', data.catenisNode);
-            console.log('Device\'s client ID info:', data.client);
-            console.log('Device\'s own ID info:', data.device);
         }
 });
 ```
@@ -486,6 +340,151 @@ ctnApiClient.listAssetHolders(assetId, 200, 0,
                 console.log('Not all asset holders have been returned');
             }
         }
+});
+```
+
+### List permission events
+
+```JavaScript
+ctnApiClient.listPermissionEvents(function (err, data) {
+    if (err) {
+        // Process error
+    }
+    else {
+        // Process returned data
+        Object.keys(data).forEach(function (eventName) {
+            console.log('Event name:', eventName, '; event description:', data[eventName]);
+        });
+    }
+});
+```
+
+### Retrieve permission rights
+
+```JavaScript
+ctnApiClient.retrievePermissionRights('receive-msg',
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Default (system) permission right:', data.system);
+            
+            if (data.catenisNode) {
+                if (data.catenisNode.allow) {
+                    console.log('Index of Catenis nodes with \'allow\' permission right:', data.catenisNode.allow);
+                }
+                
+                if (data.catenisNode.deny) {
+                    console.log('Index of Catenis nodes with \'deny\' permission right:', data.catenisNode.deny);
+                }
+            }
+            
+            if (data.client) {
+                if (data.client.allow) {
+                    console.log('ID of clients with \'allow\' permission right:', data.client.allow);
+                }
+                
+                if (data.client.deny) {
+                    console.log('ID of clients with \'deny\' permission right:', data.client.deny);
+                }
+            }
+            
+            if (data.device) {
+                if (data.device.allow) {
+                    console.log('Devices with \'allow\' permission right:', data.device.allow);
+                }
+                
+                if (data.device.deny) {
+                    console.log('Devices with \'deny\' permission right:', data.device.deny);
+                }
+            }
+        }
+});
+```
+
+### Set permission rights
+
+```JavaScript
+ctnApiClient.setPermissionRights('receive-msg', {
+        system: 'deny',
+        catenisNode: {
+            allow: 'self'
+        },
+        client: {
+            allow: [
+                'self',
+                clientId
+            ]
+        },
+        device: {
+            deny: [{
+                id: deviceId1
+            }, {
+                id: 'ABCD001',
+                isProdUniqueId: true
+            }]
+        }
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Permission rights successfully set');
+        }
+});
+```
+
+### Check effective permission right
+
+```JavaScript
+ctnApiClient.checkEffectivePermissionRight('receive-msg', deviceId, false,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            var deviceId = Object.keys(data)[0];
+            
+            console.log('Effective right for device', deviceId, ':', data[deviceId]);
+        }
+});
+```
+
+### Retrieve device identification information
+
+```JavaScript
+ctnApiClient.retrieveDeviceIdentificationInfo(deviceId, false,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Device\'s Catenis node ID info:', data.catenisNode);
+            console.log('Device\'s client ID info:', data.client);
+            console.log('Device\'s own ID info:', data.device);
+        }
+});
+```
+
+### List notification events
+
+```JavaScript
+ctnApiClient.listNotificationEvents(function (err, data) {
+    if (err) {
+        // Process error
+    }
+    else {
+        // Process returned data
+        Object.keys(data).forEach(function (eventName) {
+            console.log('Event name:', eventName, '; event description:', data[eventName]);
+        });
+    }
 });
 ```
 
