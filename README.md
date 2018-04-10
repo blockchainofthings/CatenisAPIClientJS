@@ -135,7 +135,7 @@ ctnApiClient.retrieveMessageContainer(messageId,
 });
 ```
 
-### List messages
+### Listing messages
 
 ```JavaScript
 ctnApiClient.listMessages({
@@ -343,7 +343,7 @@ ctnApiClient.listAssetHolders(assetId, 200, 0,
 });
 ```
 
-### List permission events
+### Listing system defined permission events
 
 ```JavaScript
 ctnApiClient.listPermissionEvents(function (err, data) {
@@ -359,7 +359,7 @@ ctnApiClient.listPermissionEvents(function (err, data) {
 });
 ```
 
-### Retrieve permission rights
+### Retrieving permission rights currently set for a specified permission event
 
 ```JavaScript
 ctnApiClient.retrievePermissionRights('receive-msg',
@@ -404,7 +404,7 @@ ctnApiClient.retrievePermissionRights('receive-msg',
 });
 ```
 
-### Set permission rights
+### Setting permission rights at different levels for a specified permission event
 
 ```JavaScript
 ctnApiClient.setPermissionRights('receive-msg', {
@@ -438,7 +438,7 @@ ctnApiClient.setPermissionRights('receive-msg', {
 });
 ```
 
-### Check effective permission right
+### Checking effective permission right applied to a given device for a specified permission event
 
 ```JavaScript
 ctnApiClient.checkEffectivePermissionRight('receive-msg', deviceId, false,
@@ -455,7 +455,7 @@ ctnApiClient.checkEffectivePermissionRight('receive-msg', deviceId, false,
 });
 ```
 
-### Retrieve device identification information
+### Retrieving identification information of a given device
 
 ```JavaScript
 ctnApiClient.retrieveDeviceIdentificationInfo(deviceId, false,
@@ -472,7 +472,7 @@ ctnApiClient.retrieveDeviceIdentificationInfo(deviceId, false,
 });
 ```
 
-### List notification events
+### Listing system defined notification events
 
 ```JavaScript
 ctnApiClient.listNotificationEvents(function (err, data) {
