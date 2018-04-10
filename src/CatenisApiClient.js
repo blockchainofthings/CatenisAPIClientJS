@@ -5,7 +5,7 @@
     // Save local reference to required third-party libraries
     var _jQuery = jQuery.noConflict(true),
         _moment = window.moment,
-        _sjcl = window.SJCL,
+        _sjcl = window.sjcl,
         _heir = window.heir,
         _EventEmitter = EventEmitter.noConflict();
 
@@ -14,7 +14,7 @@
     //      (used above) already takes care of restoring any previous version that might had been
     //      loaded beforehand
     window.moment = context._ctnApiClientLibs.moment;
-    window.SJCL = context._ctnApiClientLibs.sjcl;
+    window.sjcl = context._ctnApiClientLibs.sjcl;
     window.heir = context._ctnApiClientLibs.heir;
 
     var apiPath = '/api/',

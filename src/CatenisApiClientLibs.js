@@ -5,7 +5,7 @@
     // Save required third-party libraries that might have already been loaded
     context._ctnApiClientLibs = {
         moment: window.moment,
-        sjcl: window.SJCL,
+        sjcl: window.sjcl,
         heir: window.heir
     };
 })(this || {});
