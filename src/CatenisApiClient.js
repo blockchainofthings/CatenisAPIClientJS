@@ -36,7 +36,7 @@
     //      host: [String],             - (optional, default: catenis.io) Host name (with optional port) of target Catenis API server
     //      environment: [String],      - (optional, default: 'prod') Environment of target Catenis API server. Valid values: 'prod', 'beta'
     //      secure: [Boolean],          - (optional, default: true) Indicates whether a secure connection (HTTPS) should be used
-    //      version: [String]           - (optional, default: 0.5) Version of Catenis API to target
+    //      version: [String]           - (optional, default: '0.6') Version of Catenis API to target
     //    }
     function ApiClient(deviceId, apiAccessSecret, options) {
         var _host = 'catenis.io';
@@ -51,6 +51,11 @@
             _version = typeof options.version === 'string' && options.version.length > 0 ? options.version : _version;
         }
 
+        var _apiVer = new ApiVersion(_version);
+        // Determine notification service version to use based on API version
+        var _notifyServiceVer = _apiVer.gte('0.6') ? '0.2' : '0.1';
+        var _notifyWSDispatcherVer = '0.1';
+
         this.host = _subdomain + _host;
         this.uriPrefix = (_secure ? 'https://' : 'http://') + this.host;
         this.apiBaseUriPath = apiPath + _version;
@@ -62,7 +67,7 @@
         this.wsUriScheme = _secure ? 'wss://' : 'ws://';
         this.wsUriPrefix = this.wsUriScheme + this.host;
         this.qualifiedNotifyRooPath = apiPath + notifyRootPath;
-        this.wsNtfyBaseUriPath = this.qualifiedNotifyRooPath + (wsNtfyRootPath.length > 0 ? '/' : '') + wsNtfyRootPath;
+        this.wsNtfyBaseUriPath = this.qualifiedNotifyRooPath + '/' + _notifyServiceVer + (wsNtfyRootPath.length > 0 ? '/' : '') + wsNtfyRootPath + '/' + _notifyWSDispatcherVer;
         this.rootWsNtfyEndPoint = this.wsUriPrefix + this.wsNtfyBaseUriPath;
 
         this.reqParams = {};
@@ -968,6 +973,88 @@
         signRequest.call(this.apiClient, reqParams);
 
         return reqParams;
+    }
+
+    var verReSource = '^(\\d+)\\.(\\d+)$';
+
+    // ApiVersion function class
+    //
+    function ApiVersion(ver) {
+        if (!isValidVersion(ver)) {
+            throw new Error('Invalid API version:' + ver);
+        }
+
+        if (typeof ver === 'string') {
+            // Passed version is a string; parse it
+            var matchResult = ver.match(new RegExp(verReSource));
+
+            this.major = parseInt(matchResult[1]);
+            this.minor = parseInt(matchResult[2]);
+        }
+        else {
+            // Passed version is an ApiVersion instance; just copy its properties over
+            this.major = ver.major;
+            this.minor = ver.minor;
+        }
+    }
+
+    ApiVersion.prototype.toString = function () {
+        return this.major.toString() + '.' + this.minor.toString();
+    };
+
+    // Test if this version is equal to another version
+    ApiVersion.prototype.eq = function (ver) {
+        ver = ApiVersion.checkVersion(ver);
+
+        return this.major === ver.major && this.minor === ver.minor;
+    };
+
+    // Test if this version is not equal to another version
+    ApiVersion.prototype.ne = function (ver) {
+        ver = ApiVersion.checkVersion(ver);
+
+        return this.major !== ver.major || this.minor !== ver.minor;
+    };
+
+    // Test if this version is greater than another version
+    ApiVersion.prototype.gt = function (ver) {
+        ver = ApiVersion.checkVersion(ver);
+
+        return this.major > ver.major || (this.major === ver.major && this.minor > ver.minor);
+    };
+
+    // Test if this version is less than another version
+    ApiVersion.prototype.lt = function (ver) {
+        ver = ApiVersion.checkVersion(ver);
+
+        return this.major < ver.major || (this.major === ver.major && this.minor < ver.minor);
+    };
+
+    // Test if this version is greater than or equal to another version
+    ApiVersion.prototype.gte = function (ver) {
+        ver = ApiVersion.checkVersion(ver);
+
+        return this.major > ver.major || (this.major === ver.major && (this.minor > ver.minor || this.minor === ver.minor));
+    };
+
+    // Test if this version is less than or equal to another version
+    ApiVersion.prototype.lte = function (ver) {
+        ver = ApiVersion.checkVersion(ver);
+
+        return this.major < ver.major || (this.major === ver.major && (this.minor < ver.minor || this.minor === ver.minor));
+    };
+
+    ApiVersion.checkVersion = function (ver, reportError) {
+        if (isValidVersion(ver)) {
+            return typeof ver === 'string' ? new ApiVersion(ver) : ver;
+        }
+        else if (reportError === undefined || !!reportError) {
+            throw new Error('Invalid API version: ' + ver);
+        }
+    };
+
+    function isValidVersion(ver) {
+        return (typeof ver === 'string' && new RegExp(verReSource).test(ver)) || (ver instanceof ApiVersion);
     }
 
     // Export function class
