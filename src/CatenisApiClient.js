@@ -487,10 +487,10 @@
         })
     };
 
-    // Issue more amount of an existing asset
+    // Issue an additional amount of an existing asset
     //
     //  Parameters:
-    //    assetId [String]     - ID of asset to issue more amount of it
+    //    assetId [String]     - ID of asset to issue more units of it
     //    amount: [Number]     - Amount of asset to be issued (expressed as a fractional amount)
     //    holdingDevice: {     - (optional, default: device that issues the request) Device for which the asset is issued and that shall hold the total issued amount
     //      id: [String],              - ID of holding device. Should be a Catenis device ID unless isProdUniqueId is true
@@ -524,7 +524,7 @@
     // Transfer an amount of an asset to a device
     //
     //  Parameters:
-    //    assetId [String]     - ID of asset to issue more amount of it
+    //    assetId [String]     - ID of asset to transfer
     //    amount: [Number]     - Amount of asset to be transferred (expressed as a fractional amount)
     //    receivingDevice: {   - Device to which the asset is to be transferred
     //      id: [String],              - ID of receiving device. Should be a Catenis device ID unless isProdUniqueId is true

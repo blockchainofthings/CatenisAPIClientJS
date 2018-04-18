@@ -181,7 +181,7 @@ ctnApiClient.issueAsset({
 });
 ```
 
-### Issuing more amount of an existing asset
+### Issuing an additional amount of an existing asset
 
 ```JavaScript
 ctnApiClient.reissueAsset(assetId, 650.25, {
