@@ -2,7 +2,7 @@
 
 This JavaScript library is used to make it easier to access the Catenis Enterprise API services from a web browser.
 
-This current release (1.7.2) targets version 0.6 of the Catenis Enterprise API.
+This current release (1.8.0) targets version 0.6 of the Catenis Enterprise API.
 
 ## Development
 
@@ -37,7 +37,7 @@ Load the CatenisAPIClentJS.min.js library onto an HTML page using a ```<script>`
  
 ```JavaScript
 var ctnApiClient = new CtnApiClient(deviceId, apiAccessSecret, {
-    environment: 'beta'
+    environment: 'sandbox'
 });
 ```
 
