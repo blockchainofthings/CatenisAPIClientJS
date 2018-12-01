@@ -131,7 +131,7 @@
     //  Parameters:
     //    targetDevice: [Object] {
     //      id: [String],               - ID of target device. Should be Catenis device ID unless isProdUniqueId is true
-    //      isProdUniqueId: [Boolean]   - (optional, default: false) Indicate whether supply ID is a product unique ID (otherwise, if should be a Catenis device Id)
+    //      isProdUniqueId: [Boolean]   - (optional, default: false) Indicate whether supplied ID is a product unique ID (otherwise, it should be a Catenis device Id)
     //    },
     //    message: [String],            - The message to send
     //    options: [Object] (optional) {
@@ -344,7 +344,7 @@
     //      client: {   - (optional) Permission rights to be attributed at the client level for the specified event
     //        allow: [Array(String)|String],  - (optional) List of IDs (or a single ID) of clients to give allow right
     //                                        -  Can optionally include the value "self" to refer to the ID of the client to which the device belongs
-    //        deny: [Array(String)|String]    - (optional) List of IDs (or a single ID) of clients to give deny right
+    //        deny: [Array(String)|String],   - (optional) List of IDs (or a single ID) of clients to give deny right
     //                                        -  Can optionally include the value "self" to refer to the ID of the client to which the device belongs
     //        none: [Array(String)|String]    - (optional) List of IDs (or a single ID) of clients the rights of which should be removed.
     //                                        -  Can optionally include the value "self" to refer to the ID of the client to which the device belongs
