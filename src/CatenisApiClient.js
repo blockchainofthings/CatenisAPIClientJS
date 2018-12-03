@@ -78,20 +78,20 @@
             callback(undefined, typeof data === 'object' && data.data ? data.data : data);
         }
         else {
-            // Check if this is a client of API error
+            // Check if this is a client or API error
             var jqXHR = data;
-            var error = {};
+            var error;
 
             if (jqXHR.status >= 100) {
-                error.apiError = {
-                    httpStatusCode: jqXHR.status,
-                    message: typeof jqXHR.responseJSON === 'object' && jqXHR.responseJSON.message ? jqXHR.responseJSON.message : jqXHR.statusText
-                };
+                error = new CatenisApiError(jqXHR.statusText, jqXHR.status, typeof jqXHR.responseJSON === 'object' && jqXHR.responseJSON !== null && jqXHR.responseJSON.message ? jqXHR.responseJSON.message : undefined);
             }
             else {
-                error.clientError = {
-                    ajaxClient: jqXHR,
-                    message: 'Ajax client error' + (textStatus ? ' (' + textStatus + ')' : '') + (errorThrown ? ': ' + errorThrown : '')
+                if (errorThrown instanceof Error) {
+                    error = errorThrown;
+                }
+                else {
+                    error = new Error('Ajax error' + (textStatus ? ' (' + textStatus + ')' : '') + (typeof errorThrown === 'string' && errorThrown.length > 0 ? ': ' + errorThrown : ''));
+                    error.jqXHR = jqXHR;
                 }
             }
 
@@ -1057,6 +1057,40 @@
         return (typeof ver === 'string' && new RegExp(verReSource).test(ver)) || (ver instanceof ApiVersion);
     }
 
-    // Export function class
+    // CatenisAPIError class
+    //
+    function CatenisApiError(httpStatusMessage, httpStatusCode, ctnErrorMessage) {
+        var instance = new Error('Error returned from Catenis API endpoint: [' + httpStatusCode + '] ' + (ctnErrorMessage ? ctnErrorMessage : httpStatusMessage));
+
+        instance.name = 'CatenisApiError';
+        instance.httpStatusMessage = httpStatusMessage;
+        instance.httpStatusCode = httpStatusCode;
+        instance.ctnErrorMessage = ctnErrorMessage;
+
+        Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(instance, CatenisApiError);
+        }
+
+        return instance;
+    }
+
+    CatenisApiError.prototype = Object.create(Error.prototype, {
+        constructor: {
+            value: Error,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        }
+    });
+
+    if (Object.setPrototypeOf){
+        Object.setPrototypeOf(CatenisApiError, Error);
+    } else {
+        CatenisApiError.__proto__ = Error;
+    }
+
+    // Export function classes
     context.CtnApiClient = ApiClient;
+    context.CatenisApiError = CatenisApiError;
 })(this || {});
