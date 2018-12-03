@@ -58,7 +58,7 @@
 
         this.host = _subdomain + _host;
         this.uriPrefix = (_secure ? 'https://' : 'http://') + this.host;
-        this.apiBaseUriPath = apiPath + _version;
+        this.apiBaseUriPath = apiPath + _version + '/';
         this.rootApiEndPoint = this.uriPrefix + this.apiBaseUriPath;
         this.deviceId = deviceId;
         this.apiAccessSecret = apiAccessSecret;
@@ -746,9 +746,16 @@
         return new WsNotifyChannel(this, eventName);
     };
 
+    function assembleMethodEndPointUrl(methodPath, params) {
+        // Make sure that duplicate slashes that might occur in the URL (due to empty URL parameters)
+        //  are reduced to a single slash so the URL used for signing is not different from the
+        //  actual URL of the sent request
+        return this.rootApiEndPoint + formatMethodPath(methodPath, params).replace(/\/{2,}/g,'/');
+    }
+
     function postRequest(methodPath, params, data, result) {
         var reqParams = {
-            url: this.rootApiEndPoint + '/' + formatMethodPath(methodPath, params),
+            url: assembleMethodEndPointUrl.call(this, methodPath, params),
             contentType: "application/json",
             processData: false,
             data: JSON.stringify(data),
@@ -764,7 +771,7 @@
 
     function getRequest(methodPath, params, result) {
         var reqParams = {
-            url: this.rootApiEndPoint + '/' + formatMethodPath(methodPath, params),
+            url: assembleMethodEndPointUrl.call(this, methodPath, params),
             type: "GET",
             success: result.success,
             error: result.error
