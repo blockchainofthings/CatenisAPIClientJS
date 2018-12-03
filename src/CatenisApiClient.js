@@ -57,20 +57,18 @@
         var _notifyWSDispatcherVer = '0.1';
 
         this.host = _subdomain + _host;
-        this.uriPrefix = (_secure ? 'https://' : 'http://') + this.host;
-        this.apiBaseUriPath = apiPath + _version + '/';
-        this.rootApiEndPoint = this.uriPrefix + this.apiBaseUriPath;
+        var uriPrefix = (_secure ? 'https://' : 'http://') + this.host;
+        var apiBaseUriPath = apiPath + _version + '/';
+        this.rootApiEndPoint = uriPrefix + apiBaseUriPath;
         this.deviceId = deviceId;
         this.apiAccessSecret = apiAccessSecret;
         this.lastSignDate = undefined;
         this.lastSignKey = undefined;
-        this.wsUriScheme = _secure ? 'wss://' : 'ws://';
-        this.wsUriPrefix = this.wsUriScheme + this.host;
-        this.qualifiedNotifyRooPath = apiPath + notifyRootPath;
-        this.wsNtfyBaseUriPath = this.qualifiedNotifyRooPath + '/' + _notifyServiceVer + (wsNtfyRootPath.length > 0 ? '/' : '') + wsNtfyRootPath + '/' + _notifyWSDispatcherVer;
-        this.rootWsNtfyEndPoint = this.wsUriPrefix + this.wsNtfyBaseUriPath;
-
-        this.reqParams = {};
+        var wsUriScheme = _secure ? 'wss://' : 'ws://';
+        var wsUriPrefix = wsUriScheme + this.host;
+        var qualifiedNotifyRooPath = apiPath + notifyRootPath;
+        var wsNtfyBaseUriPath = qualifiedNotifyRooPath + '/' + _notifyServiceVer + (wsNtfyRootPath.length > 0 ? '/' : '') + wsNtfyRootPath + '/' + _notifyWSDispatcherVer;
+        this.rootWsNtfyEndPoint = wsUriPrefix + wsNtfyBaseUriPath;
     }
 
     ApiClient.processReturn = function (callback, data, textStatus, errorThrown) {
