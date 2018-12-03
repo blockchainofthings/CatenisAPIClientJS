@@ -208,36 +208,36 @@
     //
     //  Parameters:
     //    options: [Object] (optional) {
-    //      action: [String]                 - (optional, default: "any") - One of the following values specifying the action originally performed on
-    //                                          the messages intended to be retrieved: "log"|"send"|"any"
-    //      direction [String]               - (optional, default: "any") - One of the following values specifying the direction of the sent messages
-    //                                          intended to be retrieve: "inbound"|"outbound"|"any". Note that this option only applies to
-    //                                          sent messages (action = "send"). "inbound" indicates messages sent to the device that issued
-    //                                          the request, while "outbound" indicates messages sent from the device that issued the request
-    //      fromDeviceIds [String]           - (optional) - Comma separated list containing the Catenis device ID of the devices from which
-    //                                          the messages intended to be retrieved had been sent. Note that this option only
-    //                                          applies to messages sent to the device that issued the request (action = "send" and direction = "inbound")
-    //      toDeviceIds [String]             - (optional) - Comma separated list containing the Catenis device ID of the devices to which
-    //                                          the messages intended to be retrieved had been sent. Note that this option only
-    //                                          applies to messages sent from the device that issued the request (action = "send" and direction = "outbound")
-    //      fromDeviceProdUniqueIds [String] - (optional) - Comma separated list containing the unique product ID of the devices from which
-    //                                          the messages intended to be retrieved had been sent. Note that this option only
-    //                                          applies to messages sent to the device that issued the request (action = "send" and direction = "inbound")
-    //      toDeviceProdUniqueIds [String]   - (optional) - Comma separated list containing the product unique ID of the devices to which
-    //                                          the messages intended to be retrieved had been sent. Note that this option only
-    //                                          applies to messages sent from the device that issued the request (action = "send" and direction = "outbound")
-    //      readState [String]               - (optional, default: "any") - One of the following values indicating the current read state of the
-    //                                          the messages intended to be retrieved: "unread"|"read"|"any".
-    //      startDate [String]               - (optional) - ISO 8601 formatted date and time specifying the lower boundary of the time frame within
-    //                                          which the messages intended to be retrieved has been: logged, in case of messages logged
-    //                                          by the device that issued the request (action = "log"); sent, in case of messages sent from the current
-    //                                          device (action = "send" direction = "outbound"); or received, in case of messages sent to
-    //                                          the device that issued the request (action = "send" and direction = "inbound")
-    //      endDate [String]                 - (optional) - ISO 8601 formatted date and time specifying the upper boundary of the time frame within
-    //                                          which the messages intended to be retrieved has been: logged, in case of messages logged
-    //                                          by the device that issued the request (action = "log"); sent, in case of messages sent from the current
-    //                                          device (action = "send" direction = "outbound"); or received, in case of messages sent to
-    //                                          he device that issued the request (action = "send" and direction = "inbound")
+    //      action: [String],                 - (optional, default: "any") - One of the following values specifying the action originally performed on
+    //                                           the messages intended to be retrieved: "log"|"send"|"any"
+    //      direction: [String],              - (optional, default: "any") - One of the following values specifying the direction of the sent messages
+    //                                           intended to be retrieve: "inbound"|"outbound"|"any". Note that this option only applies to
+    //                                           sent messages (action = "send"). "inbound" indicates messages sent to the device that issued
+    //                                           the request, while "outbound" indicates messages sent from the device that issued the request
+    //      fromDevices: [Array(Object)] [{   - (optional) - List of devices from which the messages intended to be retrieved had been sent. Note that this
+    //                                           option only applies to messages sent to the device that issued the request (action = "send" and direction = "inbound")
+    //          id: [String],                    - ID of the device. Can optionally be replaced with value "self" to refer to the ID of the device itself
+    //          isProdUniqueId [Boolean]         - (optional, default: false) Indicate whether supplied ID is a product unique ID (otherwise, if should be a Catenis device Id)
+    //      }],
+    //      toDevices: [Array(Object)] [{     - (optional) - List of devices to which the messages intended to be retrieved had been sent. Note that this
+    //                                           option only applies to messages sent to the device that issued the request (action = "send" and direction = "inbound")
+    //          id: [String],                    - ID of the device. Can optionally be replaced with value "self" to refer to the ID of the device itself
+    //          isProdUniqueId [Boolean]         - (optional, default: false) Indicate whether supplied ID is a product unique ID (otherwise, if should be a Catenis device Id)
+    //      }],
+    //      readState: [String],              - (optional, default: "any") - One of the following values indicating the current read state of the
+    //                                           the messages intended to be retrieved: "unread"|"read"|"any".
+    //      startDate: [String|Object(Date)], - (optional) - Date and time specifying the lower boundary of the time frame within
+    //                                           which the messages intended to be retrieved has been: logged, in case of messages logged
+    //                                           by the device that issued the request (action = "log"); sent, in case of messages sent from the current
+    //                                           device (action = "send" direction = "outbound"); or received, in case of messages sent to
+    //                                           the device that issued the request (action = "send" and direction = "inbound")
+    //                                           Note: if a string is passed, it should be an ISO8601 formatter date/time
+    //      endDate: [String|Object(Date)]    - (optional) - Date and time specifying the upper boundary of the time frame within
+    //                                           which the messages intended to be retrieved has been: logged, in case of messages logged
+    //                                           by the device that issued the request (action = "log"); sent, in case of messages sent from the current
+    //                                           device (action = "send" direction = "outbound"); or received, in case of messages sent to
+    //                                           the device that issued the request (action = "send" and direction = "inbound")
+    //                                           Note: if a string is passed, it should be an ISO8601 formatter date/time
     //    }
     //    callback: [Function]  - Callback function
     ApiClient.prototype.listMessages = function (options, callback) {
@@ -254,20 +254,56 @@
                 params.query.direction = options.direction;
             }
 
-            if (options.fromDeviceIds) {
-                params.query.fromDeviceIds = options.fromDeviceIds;
+            if (Array.isArray(options.fromDevices)) {
+                var fromDeviceIds = [];
+                var fromDeviceProdUniqueIds = [];
+
+                options.fromDevices.forEach(function (device) {
+                    if (typeof device === 'object' && device !== null && typeof device.id === 'string' && device.id.length > 0) {
+                        if (device.isProdUniqueId && !!device.isProdUniqueId) {
+                            // This is actually a product unique ID. So add it to the proper list
+                            fromDeviceProdUniqueIds.push(device.id);
+                        }
+                        else {
+                            fromDeviceIds.push(device.id);
+                        }
+                    }
+                });
+
+                if (fromDeviceIds.length > 0) {
+                    // Add list of from device IDs
+                    params.query.fromDeviceIds = fromDeviceIds.join(',');
+                }
+
+                if (fromDeviceProdUniqueIds.length > 0) {
+                    params.query.fromDeviceProdUniqueIds = fromDeviceProdUniqueIds.join(',');
+                }
             }
 
-            if (options.toDeviceIds) {
-                params.query.toDeviceIds = options.toDeviceIds;
-            }
+            if (Array.isArray(options.toDevices)) {
+                var toDeviceIds = [];
+                var toDeviceProdUniqueIds = [];
 
-            if (options.fromDeviceProdUniqueIds) {
-                params.query.fromDeviceProdUniqueIds = options.fromDeviceProdUniqueIds;
-            }
+                options.toDevices.forEach(function (device) {
+                    if (typeof device === 'object' && device !== null && typeof device.id === 'string' && device.id.length > 0) {
+                        if (device.isProdUniqueId && !!device.isProdUniqueId) {
+                            // This is actually a product unique ID. So add it to the proper list
+                            toDeviceProdUniqueIds.push(device.id);
+                        }
+                        else {
+                            toDeviceIds.push(device.id);
+                        }
+                    }
+                });
 
-            if (options.toDeviceProdUniqueIds) {
-                params.query.toDeviceProdUniqueIds = options.toDeviceProdUniqueIds;
+                if (toDeviceIds.length > 0) {
+                    // Add list of to device IDs
+                    params.query.toDeviceIds = toDeviceIds.join(',');
+                }
+
+                if (toDeviceProdUniqueIds.length > 0) {
+                    params.query.toDeviceProdUniqueIds = toDeviceProdUniqueIds.join(',');
+                }
             }
 
             if (options.readState) {
@@ -275,11 +311,21 @@
             }
 
             if (options.startDate) {
-                params.query.startDate = options.startDate;
+                if (typeof options.startDate === 'string' && options.startDate.length > 0) {
+                    params.query.startDate = options.startDate;
+                }
+                else if (options.startDate instanceof Date) {
+                    params.query.startDate = options.startDate.toISOString();
+                }
             }
 
             if (options.endDate) {
-                params.query.endDate = options.endDate;
+                if (typeof options.endDate === 'string' && options.endDate.length > 0) {
+                    params.query.endDate = options.endDate;
+                }
+                else if (options.endDate instanceof Date) {
+                    params.query.endDate = options.endDate.toISOString();
+                }
             }
         }
 
