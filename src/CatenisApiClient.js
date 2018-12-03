@@ -1160,6 +1160,6 @@
     }
 
     // Export function classes
-    context.CtnApiClient = ApiClient;
+    context.CatenisApiClient = ApiClient;
     context.CatenisApiError = CatenisApiError;
 })(this || {});
