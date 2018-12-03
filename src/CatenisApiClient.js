@@ -710,12 +710,14 @@
     //
     //  Parameters:
     //    assetId [String] - ID of asset to retrieve issuance history
-    //    startDate: [String] - (optional) ISO 8601 formatted date and time specifying the lower boundary of the time frame
-    //                           within which the issuance events intended to be retrieved have occurred. The returned
-    //                           issuance events must have occurred not before that date/time
-    //    endDate: [String] - (optional) ISO 8601 formatted date and time specifying the upper boundary of the time frame
-    //                         within which the issuance events intended to be retrieved have occurred. The returned
-    //                         issuance events must have occurred not after that date/time
+    //    startDate [String|Object(Date)] - (optional) Date and time specifying the lower boundary of the time frame within
+    //                                       which the issuance events intended to be retrieved have occurred. The returned
+    //                                       issuance events must have occurred not before that date/time
+    //                                       Note: if a string is passed, it should be an ISO8601 formatter date/time
+    //    endDate [String|Object(Date)]   - (optional) Date and time specifying the upper boundary of the time frame within
+    //                                       which the issuance events intended to be retrieved have occurred. The returned
+    //                                       issuance events must have occurred not after that date/time
+    //                                       Note: if a string is passed, it should be an ISO8601 formatter date/time
     //    callback: [Function]      - Callback function
     ApiClient.prototype.retrieveAssetIssuanceHistory = function (assetId, startDate, endDate, callback) {
         var params = {
@@ -725,17 +727,33 @@
         };
 
         if (startDate) {
-            params.query = {
-                startDate: startDate
-            };
+            if (typeof startDate === 'string' && startDate.length > 0) {
+                params.query = {
+                    startDate: startDate
+                };
+            }
+            else if (startDate instanceof Date) {
+                params.query = {
+                    startDate: startDate.toISOString()
+                }
+            }
         }
 
         if (endDate) {
-            if (!params.query) {
-                params.query = {};
-            }
+            if (typeof endDate === 'string' && endDate.length > 0) {
+                if (!params.query) {
+                    params.query = {};
+                }
 
-            params.query.endDate = endDate;
+                params.query.endDate = endDate;
+            }
+            else if (endDate instanceof Date) {
+                if (!params.query) {
+                    params.query = {};
+                }
+
+                params.query.endDate = endDate.toISOString();
+            }
         }
 
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
