@@ -7,29 +7,6 @@ var apiClient = new CtnApiClient(
     }
 );
 
-xdescribe('Test Catenis API client.', function  () {
-    it('Retrieve message container', function (done) {
-        try {
-            apiClient.retrieveMessageContainer('mPb3drcWvonLA6dY6yjrX', function (error, result) {
-                if (error) {
-                    if (typeof error === 'object' && error !== null) {
-                        Object.keys(error).forEach(function (key) {
-                            console.log(key + ': ' + error[key]);
-                        });
-                    }
-                    done.fail('API method call should not have failed. Returned error: ' + error);
-                }
-                else {
-                    done();
-                }
-            })
-        }
-        catch (err) {
-            console.log(err);
-        }
-    });
-});
-
 describe('Test changes to Catenis API client ver. 2.0.0.', function  () {
     it('Call API method with empty URL parameter', function (done) {
         apiClient.retrieveMessageContainer('', function (error, result) {
