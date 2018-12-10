@@ -107,10 +107,10 @@ ctnApiClient.readMessage(messageId, 'utf8',
         }
         else {
             // Process returned data
-            console.log('Message read:', data.message);
+            console.log('Read message:', data.message);
             
             if (data.action === 'send') {
-                console.log('Message originally from:', data.from);
+                console.log('Message sent from:', data.from);
             }
         }
 });
@@ -172,9 +172,9 @@ ctnApiClient.listMessages({
 
 ```JavaScript
 ctnApiClient.issueAsset({
-        name: 'XYZ001'
-        description: 'My first test asset'
-        canReissue: true
+        name: 'XYZ001',
+        description: 'My first test asset',
+        canReissue: true,
         decimalPlaces: 2
     }, 1500.00, null,
     function (err, data) {
@@ -452,7 +452,7 @@ ctnApiClient.setPermissionRights('receive-msg', {
 ### Checking effective permission right applied to a given device for a specified permission event
 
 ```JavaScript
-ctnApiClient.checkEffectivePermissionRight('receive-msg', deviceId, false,
+ctnApiClient.checkEffectivePermissionRight('receive-msg', deviceProdUniqueId, true,
     function (err, data) {
         if (err) {
             // Process error
@@ -499,6 +499,12 @@ ctnApiClient.listNotificationEvents(function (err, data) {
 });
 ```
 
+## Notifications
+
+The Catenis API JavaScript Client makes it easy for receiving notifications from the Catenis system by embedding a
+WebSocket client. All the end user needs to do is open a WebSocket notification channel for the desired Catenis
+notification event, and monitor the activity on that channel.
+
 ### Receiving notifications
 
 Instantiate WebSocket notification channel object.
@@ -511,30 +517,39 @@ Add listeners.
 
 ```JavaScript
 wsNtfyChannel.addListener('error', function (error) {
-    // Process error
+    // Process error in the underlying WebSocket connection
 });
 
 wsNtfyChannel.addListener('close', function (code, reason) {
-    // Process indication that WebSocket connection has been closed
+    // Process indication that underlying WebSocket connection has been closed
 });
 
-wsNtfyChannel.addListener('message', function (data) {
-    // Process received notification message
-    console.log('Received notification message:', data);
+wsNtfyChannel.addListener('notify', function (data) {
+    // Process received notification
+    console.log('Received notification:', data);
 });
 ```
+
+> **Note**: the `data` argument of the *notify* event contains the deserialized JSON notification message (an object)
+ of the corresponding notification event.
 
 Open notification channel.
 
 ```JavaScript
 wsNtfyChannel.open(function (err) {
     if (err) {
-        // Process WebSocket connection error
+        // Process error establising undelying WebSocket connection
     }
     else {
-        // Process indication that WebSocket connection is open
+        // WebSocket notification channel is open
     }
 });
+```
+
+Close notification channel.
+
+```JavaScript
+wsNtfyChannel.close();
 ```
 
 ## Error handling
