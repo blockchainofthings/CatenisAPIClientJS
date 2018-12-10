@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.1.0] - 2018-12-10
+
+### Deprecations
+- The `message` event of the WebSocket notification channel object has been deprecated in favour of the new `notify`
+ event. The difference between the two is that the new `notify` event returns a deserialized JSON object whereas the
+ `message` event returns the originally received JSON string.
+
+### New features
+- New `notify` event added to WebSocket notification channel object.
+
 ## [2.0.0] - 2018-12-03
 
 ### Breaking changes
