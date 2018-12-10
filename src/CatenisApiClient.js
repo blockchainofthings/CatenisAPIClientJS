@@ -1019,8 +1019,12 @@
             });
 
             this.ws.addEventListener('message', function (message) {
-                // Emit message event passing the received data
+                // Emit message event passing the received data (as a JSON string)
+                // NOTE: this event is DEPRECATED (in favour of the new 'notify' event) and should be
+                //        removed in future versions of the library
                 self.emitEvent('message', [message.data]);
+                // Emit notify event passing the received data (as a deserialized JSON object)
+                self.emitEvent('notify', [JSON.parse(message.data)]);
             });
         }
     };
