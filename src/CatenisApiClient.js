@@ -599,7 +599,7 @@
     // Retrieve information about a given asset
     //
     //  Parameters:
-    //    assetId [String]     - ID of asset to transfer an amount of it
+    //    assetId [String]     - ID of asset to retrieve information
     //    callback: [Function] - Callback function
     ApiClient.prototype.retrieveAssetInfo = function (assetId, callback) {
         var params = {
@@ -767,7 +767,7 @@
     // List devices that currently hold any amount of a given asset
     //
     //  Parameters:
-    //    assetId [String]     - ID of asset to retrieve issuance history
+    //    assetId [String]     - ID of asset to get holders
     //    limit: [Number]      - (optional, default: 500) Maximum number of list items that should be returned
     //    skip: [Number]       - (optional, default: 0) Number of list items that should be skipped (from beginning of list) and not returned
     //    callback: [Function] - Callback function
