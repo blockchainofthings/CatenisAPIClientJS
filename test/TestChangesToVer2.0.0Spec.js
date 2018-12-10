@@ -1,13 +1,21 @@
-// Instantiate Catenis API client
-var apiClient = new CatenisApiClient(
-    'd8YpQ7jgPBJEkBrnvp58',
-    '61281120a92dc6267af11170d161f64478b0a852f3cce4286b8a1b82afd2de7077472b6f7b93b6d554295d859815a37cb89f4f875b7aaeb0bd2babd9531c6883', {
-        host: 'localhost:3000',
-        secure: false
-    }
-);
+xdescribe('Test changes to Catenis API client ver. 2.0.0.', function  () {
+    var device1 = {
+        id: 'd8YpQ7jgPBJEkBrnvp58'
+    };
+    var accessKey1 = '61281120a92dc6267af11170d161f64478b0a852f3cce4286b8a1b82afd2de7077472b6f7b93b6d554295d859815a37cb89f4f875b7aaeb0bd2babd9531c6883';
+    var apiClient;
 
-describe('Test changes to Catenis API client ver. 2.0.0.', function  () {
+    beforeAll(function () {
+        // Instantiate Catenis API client
+        apiClient = new CatenisApiClient(
+            device1.id,
+            accessKey1, {
+                host: 'localhost:3000',
+                secure: false
+            }
+        );
+    });
+
     it('Call API method with empty URL parameter', function (done) {
         apiClient.retrieveMessageContainer('', function (error, result) {
             if (error) {
