@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.2.0] - 2019-01-02
+
+### Changes
+- Changed interface of API methods that take optional parameters so that the optional parameters can be suppressed when
+ calling those methods.
+
 ## [2.1.0] - 2018-12-10
 
 ### Deprecations
