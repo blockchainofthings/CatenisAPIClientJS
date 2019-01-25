@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.2.1] - 2019-01-25
+
+### Fixes
+- Changed setting on jQuery so AJAX calls work on Internet Explorer
+
 ## [2.2.0] - 2019-01-02
 
 ### Changes
