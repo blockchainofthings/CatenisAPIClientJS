@@ -17,6 +17,9 @@
     window.sjcl = context._ctnApiClientLibs.sjcl;
     window.heir = context._ctnApiClientLibs.heir;
 
+    // Setting required for AJAX calls to work on Internet Explorer
+    _jQuery.support.cors = true;
+
     var apiPath = '/api/',
         signVersionId = 'CTN1',
         signMethodId = 'CTN1-HMAC-SHA256',
