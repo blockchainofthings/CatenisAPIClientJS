@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.0] - 2019-03-13
+
+### Breaking changes
+- Changed interface of *sendMessage* method: parameters `message` and `targetDevice` have swapped positions.
+
+### New features
+- Added support for version 0.7 of the Catenis Enterprise API.
+
 ## [2.2.1] - 2019-01-25
 
 ### Fixes
