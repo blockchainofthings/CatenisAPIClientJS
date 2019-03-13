@@ -45,7 +45,7 @@
         var _host = 'catenis.io';
         var _subdomain = '';
         var _secure = true;
-        var _version = '0.6';
+        var _version = '0.7';
 
         if (typeof options === 'object' && options !== null) {
             _host = typeof options.host === 'string' && options.host.length > 0 ? options.host : _host;
@@ -56,7 +56,7 @@
 
         var _apiVer = new ApiVersion(_version);
         // Determine notification service version to use based on API version
-        var _notifyServiceVer = _apiVer.gte('0.6') ? '0.2' : '0.1';
+        var _notifyServiceVer = _apiVer.gte('0.6') ? (_apiVer.gte('0.7') ? '0.3' : '0.2') : '0.1';
         var _notifyWSDispatcherVer = '0.1';
 
         this.host = _subdomain + _host;
@@ -103,11 +103,28 @@
     // Log a message
     //
     //  Parameters:
-    //    message: [String]       - The message to store
+    //    message: [String|Object] {  - The message to store. If a string is passed, it is assumed to be the whole message's contents. Otherwise,
+    //                                   it is expected that the message be passed in chunks using the following object to control it
+    //      data: [String],              - (optional) The current message data chunk. The actual message's contents should be comprised of one or
+    //                                      more data chunks. NOTE that, when sending a final message data chunk (isFinal = true and continuationToken
+    //                                      specified), this parameter may either be omitted or have an empty string value
+    //      isFinal: [Boolean],          - (optional, default: "true") Indicates whether this is the final (or the single) message data chunk
+    //      continuationToken: [String]  - (optional) - Indicates that this is a continuation message data chunk. This should be filled with the value
+    //                                      returned in the 'continuationToken' field of the response from the previously sent message data chunk
     //    options: [Object] (optional) {
     //      encoding: [String],   - (optional, default: "utf8") One of the following values identifying the encoding of the message: "utf8"|"base64"|"hex"
-    //      encrypt:  [Boolean],  - (optional, default: true) Indicates whether message should be encrypted before storing
-    //      storage: [String]     - (optional, default: "auto") One of the following values identifying where the message should be stored: "auto"|"embedded"|"external"
+    //      encrypt:  [Boolean],  - (optional, default: true) Indicates whether message should be encrypted before storing. NOTE that, when message
+    //                               is passed in chunks, this option is only taken into consideration (and thus only needs to be passed) for the
+    //                               final message data chunk, and it shall be applied to the message's contents as a whole
+    //      storage: [String]     - (optional, default: "auto") One of the following values identifying where the message should be stored: "auto"|
+    //                               "embedded"|"external". NOTE that, when message is passed in chunks, this option is only taken into consideration
+    //                               (and thus only needs be passed) for the final message data chunk, and it shall be applied to the message's
+    //                               contents as a whole
+    //      async: [Boolean]      - (optional, default: false) - Indicates whether processing (storage of message to the blockchain) should be
+    //                               done asynchronously. If set to true, a provisional message ID is returned, which should be used to retrieve
+    //                               the processing outcome by calling the MessageProgress API method. NOTE that, when message is passed in chunks,
+    //                               this option is only taken into consideration (and thus only needs to be passed) for the final message data chunk,
+    //                               and it shall be applied to the message's contents as a whole
     //    }
     //    callback: [Function]    - Callback function
     ApiClient.prototype.logMessage = function (message, options, callback) {
@@ -135,19 +152,41 @@
     // Send a message
     //
     //  Parameters:
-    //    targetDevice: [Object] {
+    //    message: [String|Object] {  - The message to send. If a string is passed, it is assumed to be the whole message's contents. Otherwise, it is
+    //                                   expected that the message be passed in chunks using the following object to control it
+    //      data: [String],              - (optional) The current message data chunk. The actual message's contents should be comprised of one or more
+    //                                      data chunks. NOTE that, when sending a final message data chunk (isFinal = true and continuationToken
+    //                                      specified), this parameter may either be omitted or have an empty string value
+    //      isFinal: [Boolean],          - (optional, default: "true") Indicates whether this is the final (or the single) message data chunk
+    //      continuationToken: [String]  - (optional) - Indicates that this is a continuation message data chunk. This should be filled with the value
+    //                                      returned in the 'continuationToken' field of the response from the previously sent message data chunk
+    //    targetDevice: [Object] (optional) { - The target device. Note that, when message is passed in chunks, this parameter is only taken into
+    //                                          consideration (and thus only needs to be passed) for the final message data chunk; for all previous
+    //                                          message data chunks, it can be omitted. Otherwise, this is a required parameter
     //      id: [String],               - ID of target device. Should be Catenis device ID unless isProdUniqueId is true
-    //      isProdUniqueId: [Boolean]   - (optional, default: false) Indicate whether supplied ID is a product unique ID (otherwise, it should be a Catenis device Id)
+    //      isProdUniqueId: [Boolean]   - (optional, default: false) Indicate whether supplied ID is a product unique ID (otherwise, it should be a
+    //                                     Catenis device Id)
     //    },
-    //    message: [String],            - The message to send
     //    options: [Object] (optional) {
-    //      readConfirmation: [Boolean], - (optional, default: false) Indicates whether message should be sent with read confirmation enabled
     //      encoding: [String],          - (optional, default: "utf8") One of the following values identifying the encoding of the message: "utf8"|"base64"|"hex"
-    //      encrypt:  [Boolean],         - (optional, default: true) Indicates whether message should be encrypted before storing
-    //      storage: [String]            - (optional, default: "auto") One of the following values identifying where the message should be stored: "auto"|"embedded"|"external"
+    //      encrypt:  [Boolean],         - (optional, default: true) Indicates whether message should be encrypted before storing. NOTE that, when message
+    //                                      is passed in chunks, this option is only taken into consideration (and thus only needs to be passed) for the
+    //                                      final message data chunk, and it shall be applied to the message's contents as a whole
+    //      storage: [String]            - (optional, default: "auto") One of the following values identifying where the message should be stored: "auto"|
+    //                                      "embedded"|"external". NOTE that, when message is passed in chunks, this option is only taken into consideration
+    //                                      (and thus only needs be passed) for the final message data chunk, and it shall be applied to the message's
+    //                                      contents as a whole
+    //      readConfirmation: [Boolean], - (optional, default: false) Indicates whether message should be sent with read confirmation enabled.
+    //                                      NOTE that, when message is passed in chunks, this option is only taken into consideration (and thus only needs
+    //                                      be passed) for the final message data chunk, and it shall be applied to the message's contents as a whole
+    //      async: [Boolean]             - (optional, default: false) - Indicates whether processing (storage of message to the blockchain) should be done
+    //                                      asynchronously. If set to true, a provisional message ID is returned, which should be used to retrieve the
+    //                                      processing outcome by calling the MessageProgress API method. NOTE that, when message is passed in chunks,
+    //                                      this option is only taken into consideration (and thus only needs to be passed) for the final message data
+    //                                      chunk, and it shall be applied to the message's contents as a whole
     //    }
     //    callback: [Function]          - Callback function
-    ApiClient.prototype.sendMessage = function (targetDevice, message, options, callback) {
+    ApiClient.prototype.sendMessage = function (message, targetDevice, options, callback) {
         if (typeof options === 'function') {
             callback = options;
             options = undefined;
@@ -174,12 +213,25 @@
     //
     //  Parameters:
     //    messageId: [String]   - ID of message to read
-    //    encoding: [String]    - (optional, default: "utf8") One of the following values identifying the encoding that should be used for the returned message: utf8|base64|hex
+    //    options: [String|Object] (optional) { - If a string is passed, it is assumed to be the value for the (single) 'encoding' option
+    //      encoding: [String]          - (optional, default: "utf8") One of the following values identifying the encoding that should be used for the
+    //                                     returned message: utf8|base64|hex
+    //      continuationToken [String]  - (optional) Indicates that this is a continuation call and that the following message data chunk should be returned
+    //      dataChunkSize [Number]      - (optional) Size, in bytes, of the largest message data chunk that should be returned. This is effectively used
+    //                                     to signal that the message should be retrieved/read in chunks. NOTE that this option is only taken into
+    //                                     consideration (and thus only needs to be passed) for the initial call to this API method with a given message
+    //                                     ID (no continuation token), and it shall be applied to the message's contents as a whole
+    //      async [Boolean]             - (default: false) Indicates whether processing (retrieval of message from the blockchain) should be done
+    //                                     asynchronously. If set to true, a cached message ID is returned, which should be used to retrieve the processing
+    //                                     outcome by calling the Retrieve Message Progress API method. NOTE that this option is only taken into
+    //                                     consideration (and thus only needs to be passed) for the initial call to this API method with a given message
+    //                                     ID (no continuation token), and it shall be applied to the message's contents as a whole
+    //    }
     //    callback: [Function]  - Callback function
-    ApiClient.prototype.readMessage = function (messageId, encoding, callback) {
-        if (typeof encoding === 'function') {
-            callback = encoding;
-            encoding = undefined;
+    ApiClient.prototype.readMessage = function (messageId, options, callback) {
+        if (typeof options === 'function') {
+            callback = options;
+            options = undefined;
         }
 
         var params = {
@@ -188,10 +240,15 @@
             ]
         };
 
-        if (encoding) {
-            params.query = {
-                encoding: encoding
-            };
+        if (options) {
+            if (typeof options === 'string') {
+                params.query = {
+                    encoding: options
+                };
+            }
+            else if (typeof options === 'object') {
+                params.query = filterDefinedProperties(options);
+            }
         }
 
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
@@ -217,6 +274,26 @@
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
         getRequest.call(this, 'messages/:messageId/container', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Retrieve asynchronous message processing progress
+    //
+    //  Parameters:
+    //    messageId: [String]   - ID of ephemeral message (either a provisional or a cached message) for which to return processing progress
+    //    callback: [Function]  - Callback function
+    ApiClient.prototype.retrieveMessageProgress = function (messageId, callback) {
+        var params = {
+            url: [
+                messageId
+            ]
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'messages/:messageId/progress', params, {
             success: procFunc,
             error: procFunc
         });
@@ -1023,6 +1100,22 @@
         }
 
         return formattedMethodPath;
+    }
+
+    function filterDefinedProperties(obj) {
+        if (typeof obj === 'object' && obj !== null) {
+            var filteredObj = {};
+
+            Object.keys(obj).forEach(function (key) {
+                if (obj[key] !== undefined) {
+                    filteredObj[key] = obj[key];
+                }
+            });
+
+            obj = filteredObj;
+        }
+
+        return obj;
     }
 
     // WebSocket Notification Channel function class constructor

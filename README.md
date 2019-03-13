@@ -56,6 +56,8 @@ For example, you should expect the following data structure to be returned from 
 
 ### Logging (storing) a message to the blockchain
 
+#### Passing the whole message's contents at once
+
 ```JavaScript
 ctnApiClient.logMessage('My message', {
         encoding: 'utf8',
@@ -73,15 +75,17 @@ ctnApiClient.logMessage('My message', {
 });
 ```
 
-### Sending a message to another device
+#### Passing the message's contents in chunks
 
 ```JavaScript
-ctnApiClient.sendMessage({
-        id: targetDeviceId,
-        isProdUniqueId: false
-    },
-    'My message to send', {
-        readConfirmation: true,
+var logMsgChunk = function (msgParts, msgIdx, continuationToken) {
+    msgIdx = msgIdx || 0;
+    
+    ctnApiClient.logMessage({
+        data: msgParts[msgIdx],
+        isFinal: msgIdx === msgParts.length - 1,
+        continuationToke: continuationToken
+    }, {
         encoding: 'utf8',
         encrypt: true,
         storage: 'auto'
@@ -92,13 +96,197 @@ ctnApiClient.sendMessage({
         }
         else {
             // Process returned data
-            console.log('ID of sent message:', data.messageId);
+            if (data.continuationToken) {
+                // Get continuation token and send next part of message
+                logMsgChunk(msgParts, msgIdx + 1, data.continuationToken);
+            }
+            else {
+                console.log('ID of logged message:', data.messageId);
+            }
+        }
+    });
+};
+
+// Start sending message to be logged
+logMsgChunk([
+    'First part of message',
+    'Second part of message',
+    'Third and last part of message'
+]);
+```
+
+#### Logging message asynchronously
+
+```JavaScript
+var getAsyncProgress = function (provisionalMessageId) {
+    ctnApiClient.retrieveMessageProgress(provisionalMessageId,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Number of bytes processed so far:', data.progress.bytesProcessed);
+                
+            if (data.progress.done) {
+                if (data.progress.success) {
+                    // Get result
+                    console.log('ID of logged message:', data.result.messageId);
+                }
+                else {
+                    // Process error
+                    console.error('Asynchronous processing error: [', data.progress.error.code, ' ] -', data.progress.error.message);
+                }
+            }
+            else {
+                // Asynchronous processing not done yet. Continue pooling
+                setTimeout(getAsyncProgress, 100, provisionalMessageId);
+            }
+        }
+    });
+};
+
+ctnApiClient.logMessage('My message', {
+        encoding: 'utf8',
+        encrypt: true,
+        storage: 'auto',
+        async: true
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Start pooling for asynchronous processing progress
+            setTimeout(getAsyncProgress, 100, data.provisionalMessageId);
+        }
+});
+```
+
+### Sending a message to another device
+
+#### Passing the whole message's contents at once
+
+```JavaScript
+ctnApiClient.sendMessage('My message', {
+       id: targetDeviceId,
+       isProdUniqueId: false
+    }, {
+        encoding: 'utf8',
+        encrypt: true,
+        storage: 'auto',
+        readConfirmation: true
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.send('ID of sent message:', data.messageId);
+        }
+});
+```
+
+#### Passing the message's contents in chunks
+
+```JavaScript
+var sendMsgChunk = function (msgChunks, msgIdx, continuationToken) {
+    msgIdx = msgIdx || 0;
+    
+    ctnApiClient.sendMessage({
+        data: msgChunks[msgIdx],
+        isFinal: msgIdx === msgChunks.length - 1,
+        continuationToke: continuationToken
+    }, {
+       id: targetDeviceId,
+       isProdUniqueId: false
+    }, {
+        encoding: 'utf8',
+        encrypt: true,
+        storage: 'auto',
+        readConfirmation: true
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            if (data.continuationToken) {
+                // Get continuation token and send next part of message
+                sendMsgChunk(msgChunks, msgIdx + 1, data.continuationToken);
+            }
+            else {
+                console.log('ID of sent message:', data.messageId);
+            }
+        }
+    });
+};
+
+// Start sending message
+sendMsgChunk([
+    'First part of message',
+    'Second part of message',
+    'Third and last part of message'
+]);
+```
+
+#### Sending message asynchronously
+
+```JavaScript
+var getAsyncProgress = function (provisionalMessageId) {
+    ctnApiClient.retrieveMessageProgress(provisionalMessageId,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Number of bytes processed so far:', data.progress.bytesProcessed);
+                
+            if (data.progress.done) {
+                if (data.progress.success) {
+                    // Get result
+                    console.log('ID of logged message:', data.result.messageId);
+                }
+                else {
+                    // Process error
+                    console.error('Asynchronous processing error: [', data.progress.error.code, ' ] -', data.progress.error.message);
+                }
+            }
+            else {
+                // Asynchronous processing not done yet. Continue pooling
+                setTimeout(getAsyncProgress, 100, provisionalMessageId);
+            }
+        }
+    });
+};
+
+ctnApiClient.sendMessage('My message', {
+       id: targetDeviceId,
+       isProdUniqueId: false
+    }, {
+        encoding: 'utf8',
+        encrypt: true,
+        storage: 'auto',
+        readConfirmation: true
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Start pooling for asynchronous processing progress
+            setTimeout(getAsyncProgress, 100, data.provisionalMessageId);
         }
 });
 ```
 
 ### Reading a message
 
+#### Retrieving the whole read message's contents at once
+ 
 ```JavaScript
 ctnApiClient.readMessage(messageId, 'utf8',
     function (err, data) {
@@ -107,13 +295,110 @@ ctnApiClient.readMessage(messageId, 'utf8',
         }
         else {
             // Process returned data
-            console.log('Read message:', data.message);
-            
-            if (data.action === 'send') {
-                console.log('Message sent from:', data.from);
+            if (data.msgInfo.action === 'send') {
+                console.log('Message sent from:', data.msgInfo.from);
             }
+
+            console.log('Read message:', data.msgData);
         }
 });
+```
+
+#### Retrieving the read message's contents in chunks
+
+```JavaScript
+var readMsgChunk = function (messageId, chunkCount, continuationToken) {
+    chunkCount = chunkCount || 1;
+    
+    ctnApiClient.readMessage(messageId, {
+        encoding: 'utf8',
+        continuationToken: continuationToken,
+        dataChunkSize: 1024
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            if (data.msgInfo && data.msgInfo.action === 'send') {
+                console.log('Message sent from:', data.msgInfo.from);
+            }
+            
+            console.log('Read message (part', chunkCount, '):', data.msgData);
+            
+            if (data.continuationToken) {
+                // Get continuation token and get next part of message
+                readMsgChunk(messageId, chunkCount + 1, data.continuationToken);
+            }
+        }
+    });
+};
+
+// Start reading message
+readMsgChunk(messageId);
+```
+
+#### Reading message asynchronously
+
+```JavaScript
+var getAsyncProgress = function (cachedMessageId) {
+    ctnApiClient.retrieveMessageProgress(cachedMessageId,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Number of bytes processed so far:', data.progress.bytesProcessed);
+                
+            if (data.progress.done) {
+                if (data.progress.success) {
+                    // Actually read the message now
+                    readMsg(data.result.messageId, data.result.cachedMessageId);
+                }
+                else {
+                    // Process error
+                    console.error('Asynchronous processing error: [', data.progress.error.code, ' ] -', data.progress.error.message);
+                }
+            }
+            else {
+                // Asynchronous processing not done yet. Continue pooling
+                setTimeout(getAsyncProgress, 100, cachedMessageId);
+            }
+        }
+    });
+};
+
+var readMsg = function (messageId, continuationToken) {
+    ctnApiClient.readMessage(messageId, {
+        encoding: 'utf8',
+        continuationToken: continuationToken,
+        async: true
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            if (data.cachedMessageId) {
+                // Start pooling for asynchronous processing progress
+                setTimeout(getAsyncProgress, 100, data.cachedMessageId);
+            }
+            else {
+                if (data.msgInfo.action === 'send') {
+                    console.log('Message sent from:', data.msgInfo.from);
+                }
+                
+                console.log('Read message:', data.msgData);
+            }
+        }
+    });
+};
+
+// Start reading message
+readMsg(messageId);
 ```
 
 ### Retrieving information about a message's container
@@ -134,6 +419,38 @@ ctnApiClient.retrieveMessageContainer(messageId,
         }
 });
 ```
+
+### Retrieving asynchronous message processing progress
+
+```JavaScript
+ctnApiClient.retrieveMessageProgress(provisionalMessageId,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Number of bytes processed so far:', data.progress.bytesProcessed);
+                
+            if (data.progress.done) {
+                if (data.progress.success) {
+                    // Get result
+                    console.log('Asynchronous processing result:', data.result);
+                }
+                else {
+                    // Process error
+                    console.error('Asynchronous processing error: [', data.progress.error.code, ' ] -', data.progress.error.message);
+                }
+            }
+            else {
+                // Asynchronous processing not done yet. Continue pooling
+            }
+        }
+});
+```
+
+> **Note**: see the *Logging message asynchronously*, *Sending message asynchronously* and *Reading message
+>asynchronously* sections above for more complete examples.
 
 ### Listing messages
 
