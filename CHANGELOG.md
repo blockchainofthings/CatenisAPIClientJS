@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.0.1] - 2019-03-26
+
+### Changes
+- Small fixes to sample code in README file.
+
 ## [3.0.0] - 2019-03-13
 
 ### Breaking changes
