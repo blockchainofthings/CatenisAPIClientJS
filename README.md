@@ -84,7 +84,7 @@ var logMsgChunk = function (msgParts, msgIdx, continuationToken) {
     ctnApiClient.logMessage({
         data: msgParts[msgIdx],
         isFinal: msgIdx === msgParts.length - 1,
-        continuationToke: continuationToken
+        continuationToken: continuationToken
     }, {
         encoding: 'utf8',
         encrypt: true,
@@ -197,7 +197,7 @@ var sendMsgChunk = function (msgChunks, msgIdx, continuationToken) {
     ctnApiClient.sendMessage({
         data: msgChunks[msgIdx],
         isFinal: msgIdx === msgChunks.length - 1,
-        continuationToke: continuationToken
+        continuationToken: continuationToken
     }, {
        id: targetDeviceId,
        isProdUniqueId: false
@@ -270,7 +270,8 @@ ctnApiClient.sendMessage('My message', {
         encoding: 'utf8',
         encrypt: true,
         storage: 'auto',
-        readConfirmation: true
+        readConfirmation: true,
+        async: true
     },
     function (err, data) {
         if (err) {
