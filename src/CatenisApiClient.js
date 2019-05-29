@@ -28,7 +28,8 @@
         signValidDays = 7,
         notifyRootPath = 'notify',
         wsNtfyRootPath =  'ws',
-        notifyWsSubprotocol = 'notify.catenis.io';
+        notifyWsSubprotocol = 'notify.catenis.io',
+        notifyChannelOpenMsg = 'NOTIFICATION_CHANNEL_OPEN';
 
     // Api Client function class constructor
     //
@@ -57,7 +58,7 @@
         var _apiVer = new ApiVersion(_version);
         // Determine notification service version to use based on API version
         var _notifyServiceVer = _apiVer.gte('0.6') ? (_apiVer.gte('0.7') ? '0.3' : '0.2') : '0.1';
-        var _notifyWSDispatcherVer = '0.1';
+        var _notifyWSDispatcherVer = '0.2';
 
         this.host = _subdomain + _host;
         var uriPrefix = (_secure ? 'https://' : 'http://') + this.host;
@@ -1195,12 +1196,19 @@
             });
 
             this.ws.addEventListener('message', function (message) {
-                // Emit message event passing the received data (as a JSON string)
-                // NOTE: this event is DEPRECATED (in favour of the new 'notify' event) and should be
-                //        removed in future versions of the library
-                self.emitEvent('message', [message.data]);
-                // Emit notify event passing the received data (as a deserialized JSON object)
-                self.emitEvent('notify', [JSON.parse(message.data)]);
+                if (message.data === notifyChannelOpenMsg) {
+                    // Special notification channel open message. Emit open event indicating that
+                    //  notification channel is successfully open and ready to send notifications
+                    self.emitEvent('open');
+                }
+                else {
+                    // Emit message event passing the received data (as a JSON string)
+                    // NOTE: this event is DEPRECATED (in favour of the new 'notify' event) and should be
+                    //        removed in future versions of the library
+                    self.emitEvent('message', [message.data]);
+                    // Emit notify event passing the received data (as a deserialized JSON object)
+                    self.emitEvent('notify', [JSON.parse(message.data)]);
+                }
             });
         }
     };

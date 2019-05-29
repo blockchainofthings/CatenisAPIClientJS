@@ -842,6 +842,11 @@ wsNtfyChannel.addListener('close', function (code, reason) {
     // Process indication that underlying WebSocket connection has been closed
 });
 
+wsNtfyChannel.addListener('open', function () {
+    // Process indication that notification channel is successfully open
+    //  and ready to send notifications 
+});
+
 wsNtfyChannel.addListener('notify', function (data) {
     // Process received notification
     console.log('Received notification:', data);
@@ -856,10 +861,11 @@ Open notification channel.
 ```JavaScript
 wsNtfyChannel.open(function (err) {
     if (err) {
-        // Process error establising undelying WebSocket connection
+        // Process error establishing underlying WebSocket connection
     }
     else {
-        // WebSocket notification channel is open
+        // WebSocket client successfully connected. Wait for open event to make
+        //  sure that notification channel is ready to send notifications
     }
 });
 ```
