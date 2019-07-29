@@ -6,6 +6,7 @@
   "homepage": "https://github.com/blockchainofthings/CatenisAPIClientJS",
   "dependencies": {},
   "devDependencies": {
+    "bower": "^1.8.8",
     "gulp": "^4.0.2",
     "gulp-jasmine-browser": "^4.1.0",
     "jasmine-core": "^3.3.0",
@@ -14,8 +15,9 @@
     "uglify-js": "^2.8.18"
   },
   "scripts": {
-    "build": "rm -f ./build/* && cat ./src/sjcl_preamble.txt ./lib/sjcl.min.js ./src/sjcl_postamble.txt > ./build/custom.sjcl.min.js && ./node_modules/.bin/uglifyjs ./src/CatenisApiClientLibs.js ./lib/jquery.min.js ./lib/moment.min.js ./build/custom.sjcl.min.js ./lib/heir.js ./lib/EventEmitter.min.js ./src/CatenisApiClient.js --compress --mangle --preamble \"// CatenisAPIClientJS ver.3.1.0 - Copyright (c) 2018, Blockchain of Things Inc.\" --source-map ./build/CatenisAPIClientJS.min.map --source-map-url CatenisAPIClientJS.min.map --output ./build/CatenisAPIClientJS.min.js && rm -f ./build/custom.sjcl.min.js",
-    "test": "gulp jasmine-chrome"
+    "build": "./bin/build.sh",
+    "test": "gulp jasmine-chrome",
+    "test-compress": "gulp jasmine-chrome-compress"
   },
   "repository": {
     "type": "git",

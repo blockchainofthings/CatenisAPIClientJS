@@ -12,3 +12,16 @@ gulp.task('jasmine-chrome', function() {
         throwFailures: false
     }));
 });
+
+gulp.task('jasmine-chrome-compress', function() {
+    return gulp.src(['test/helpers/*.js', 'build/CatenisAPIClientJS.min.js', 'test/TestDataCompressionSpec.js'])
+    .pipe(jasmineBrowser.specRunner({
+        console: true
+    }))
+    .pipe(jasmineBrowser.headless({
+        catch: true,
+        driver: 'chrome',
+        throwFailures: false,
+        random: false
+    }));
+});

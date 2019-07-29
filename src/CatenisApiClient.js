@@ -7,15 +7,17 @@
         _moment = window.moment,
         _sjcl = window.sjcl,
         _heir = window.heir,
-        _EventEmitter = EventEmitter.noConflict();
+        _EventEmitter = EventEmitter.noConflict(),
+        _pako = window.pako;
 
     // Restore third-party libraries that might have been loaded before this library was loaded
     //  NOTE: no need to do the same with the jQuery library because its noConflict() method
     //      (used above) already takes care of restoring any previous version that might had been
     //      loaded beforehand
     window.moment = context._ctnApiClientLibs.moment;
-    window.sjcl = context._ctnApiClientLibs.sjcl;
+    window.sjcl = _sjcl;//context._ctnApiClientLibs.sjcl;
     window.heir = context._ctnApiClientLibs.heir;
+    window.pako = context._ctnApiClientLibs.pako;
 
     // Setting required for AJAX calls to work on Internet Explorer
     _jQuery.support.cors = true;
@@ -37,10 +39,13 @@
     //    deviceId: [String]            - Catenis device ID
     //    apiAccessSecret: [String]     - Catenis device's API access secret
     //    options [Object] (optional) {
-    //      host: [String],             - (optional, default: catenis.io) Host name (with optional port) of target Catenis API server
-    //      environment: [String],      - (optional, default: 'prod') Environment of target Catenis API server. Valid values: 'prod', 'sandbox' (or 'beta')
-    //      secure: [Boolean],          - (optional, default: true) Indicates whether a secure connection (HTTPS) should be used
-    //      version: [String]           - (optional, default: '0.6') Version of Catenis API to target
+    //      host: [String],              - (optional, default: 'catenis.io') Host name (with optional port) of target Catenis API server
+    //      environment: [String],       - (optional, default: 'prod') Environment of target Catenis API server. Valid values: 'prod', 'sandbox' (or 'beta')
+    //      secure: [Boolean],           - (optional, default: true) Indicates whether a secure connection (HTTPS) should be used
+    //      version: [String],           - (optional, default: '0.7') Version of Catenis API to target
+    //      useCompression: [Boolean],   - (optional, default: true) Indicates whether request body should be compressed. Note: modern
+    //                                                               web browsers will always accept compressed request responses
+    //      compressThreshold: [Number], - (optional, default: 1024) Minimum size, in bytes, of request body for it to be compressed
     //    }
     function ApiClient(deviceId, apiAccessSecret, options) {
         var _host = 'catenis.io';
@@ -48,11 +53,22 @@
         var _secure = true;
         var _version = '0.7';
 
+        this.useCompression = true;
+        this.compressThreshold = 1024;
+
         if (typeof options === 'object' && options !== null) {
             _host = typeof options.host === 'string' && options.host.length > 0 ? options.host : _host;
             _subdomain = options.environment === 'sandbox' || options.environment === 'beta' ? 'sandbox.' : _subdomain;
             _secure = typeof options.secure === 'boolean' ? options.secure : _secure;
             _version = typeof options.version === 'string' && options.version.length > 0 ? options.version : _version;
+
+            if (typeof options.useCompression === 'boolean' && !options.useCompression) {
+                this.useCompression = false;
+            }
+
+            if (typeof options.compressThreshold == 'number' && options.compressThreshold >= 0) {
+                this.compressThreshold = Math.floor(options.compressThreshold);
+            }
         }
 
         var _apiVer = new ApiVersion(_version);
@@ -987,6 +1003,15 @@
             error: result.error
         };
 
+        // NOTE: modern web browsers will always set the 'Accept-Encoding' header of AJAX requests
+        //        to accept compressed request responses and will not allow it to be overwritten
+        if (this.useCompression && utf8ByteLength(reqParams.data) >= this.compressThreshold) {
+            reqParams.headers = {};
+            reqParams.headers['Content-Encoding'] = 'deflate';
+
+            reqParams.data = _pako.deflate(reqParams.data);
+        }
+
         signRequest.call(this, reqParams);
 
         _jQuery.ajax(reqParams);
@@ -1000,9 +1025,16 @@
             error: result.error
         };
 
+        // NOTE: modern web browsers will always set the 'Accept-Encoding' header of AJAX requests
+        //        to accept compressed request responses and will not allow it to be overwritten
+
         signRequest.call(this, reqParams);
 
         _jQuery.ajax(reqParams);
+    }
+
+    function utf8ByteLength(str) {
+        return unescape(encodeURIComponent(str)).length;
     }
 
     function signRequest(reqParams) {
@@ -1066,6 +1098,10 @@
     }
 
     function hashData(data) {
+        if (data instanceof Uint8Array) {
+            data = _sjcl.codec.arrayBuffer.toBits(data.buffer);
+        }
+
         return _sjcl.codec.hex.fromBits(_sjcl.hash.sha256.hash(data));
     }
 

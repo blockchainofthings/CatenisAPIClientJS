@@ -1,0 +1,21 @@
+{
+  "name": "catenis-api-client-browser",
+  "description": "",
+  "main": "src/CatenisApiClientJS.js",
+  "authors": [
+    "Cláudio Sá de Castro <claudio@hiades.com.br>"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "pako": "^1.0.10"
+  }
+}

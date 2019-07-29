@@ -6,6 +6,7 @@
     context._ctnApiClientLibs = {
         moment: window.moment,
         sjcl: window.sjcl,
-        heir: window.heir
+        heir: window.heir,
+        pako: window.pako
     };
 })(this || {});
