@@ -16,8 +16,8 @@
   },
   "scripts": {
     "build": "./bin/build.sh",
-    "test": "gulp jasmine-chrome",
-    "test-compress": "gulp jasmine-chrome-compress"
+    "test": "env TEST_SPECS='TestChangesToVer{!npm_package_version}Spec.js' gulp jasmine-chrome",
+    "test-compress": "env TEST_SPECS='TestDataCompressionSpec.js' gulp jasmine-chrome"
   },
   "repository": {
     "type": "git",
