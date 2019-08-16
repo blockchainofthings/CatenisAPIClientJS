@@ -49,7 +49,7 @@ The following options can be used when instantiating the client:
 - **host** \[String\] - (optional, default: <b>*'catenis.io'*</b>) Host name (with optional port) of target Catenis API server.
 - **environment** \[String\] - (optional, default: <b>*'prod'*</b>) Environment of target Catenis API server. Valid values: *'prod'*, *'sandbox'*.
 - **secure** \[Boolean\] - (optional, default: ***true***) Indicates whether a secure connection (HTTPS) should be used.
-- **version** \[String\] - (optional, default: <b>*'0.7'*</b>) Version of Catenis API to target.
+- **version** \[String\] - (optional, default: <b>*'0.8'*</b>) Version of Catenis API to target.
 - **useCompression** \[Boolean\] - (optional, default: ***true***) Indicates whether request body should be compressed.
 - **compressThreshold** \[Number\] - (optional, default: ***1024***) Minimum size, in bytes, of request body for it to be compressed.
 
@@ -475,7 +475,7 @@ ctnApiClient.listMessages({
         direction: 'inbound',
         readState: 'unread',
         startDate: '20170101T000000Z'
-    },
+    }, 200, 0,
     function (err, data) {
         if (err) {
             // Process error
@@ -493,12 +493,13 @@ ctnApiClient.listMessages({
 });
 ```
 
-> **Note**: the fields of the *options* parameter of the *listMessages* method are slightly different than the ones
->taken by the List Messages Catenis API method. In particular, fields `fromDeviceIds` and `fromDeviceProdUniqueIds`,
->and fields `toDeviceIds` and `toDeviceProdUniqueIds` are replaced by fields `fromDevices` and `toDevices`,
->respectively. Those fields take an array of device ID objects, which is the same type of object taken by the first
->parameter (`targetDevice`) of the *sendMessage* method. Also, the date fields, `startDate` and `endDate`, accept not
->only strings containing ISO8601 formatted dates/times but also *Date* objects.
+> **Note**: the parameters taken by the *listMessages* method do not exactly match the parameters taken by the List
+ Messages Catenis API method. Most of the parameters, with the exception of the last two (`limit` and `skip`), are
+ mapped to fields of the first parameter (`selector`) of the *listMessages* method with a few singularities: parameters
+ `fromDeviceIds` and `fromDeviceProdUniqueIds` and parameters `toDeviceIds` and `toDeviceProdUniqueIds` are replaced with
+ fields `fromDevices` and `toDevices`, respectively. Those fields take an array of device ID objects, which is the same
+ type of object taken by the first parameter (`targetDevice`) of the *sendMessage* method. Also, the date fields,
+ `startDate` and `endDate`, accept not only strings containing ISO8601 formatted dates/times but also *Date* objects.
 
 ### Issuing an amount of a new asset
 
@@ -637,7 +638,7 @@ ctnApiClient.listIssuedAssets(200, 0,
 ### Retrieving issuance history for a given asset
 
 ```JavaScript
-ctnApiClient.retrieveAssetIssuanceHistory(assetId, '20170101T000000Z', null,
+ctnApiClient.retrieveAssetIssuanceHistory(assetId, '20170101T000000Z', null, 200, 0,
     function (err, data) {
         if (err) {
             // Process error
@@ -659,7 +660,7 @@ ctnApiClient.retrieveAssetIssuanceHistory(assetId, '20170101T000000Z', null,
 ```
 
 > **Note**: the parameters of the *retrieveAssetIssuanceHistory* method are slightly different than the ones taken by
->the Retrieve Asset Issuance History Catenis API method. In particular, the date fields, `startDate` and `endDate`,
+>the Retrieve Asset Issuance History Catenis API method. In particular, the date parameters, `startDate` and `endDate`,
 >accept not only strings containing ISO8601 formatted dates/times but also *Date* objects.
 
 ### Listing devices that currently hold any amount of a given asset
