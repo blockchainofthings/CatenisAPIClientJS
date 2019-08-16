@@ -2,8 +2,7 @@
 
 This JavaScript library is used to make it easier to access the Catenis Enterprise API services from a web browser.
 
-This current release (3.1.0) targets version 0.7 of the Catenis Enterprise API and version 0.2 of the WebSocket
-notification message dispatcher.
+This current release (4.0.0) targets version 0.8 of the Catenis Enterprise API.
 
 ## Development
 
