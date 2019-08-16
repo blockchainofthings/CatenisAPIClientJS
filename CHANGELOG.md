@@ -1,5 +1,22 @@
 # Changelog
 
+## [4.0.0] - 2019-08-16
+
+### Breaking changes
+- The `countExceeded` property of the object returned from a successful call to the *listMessages* method has been
+ replaced with the new `hasMore` property.
+- The `countExceeded` property of the object returned from a successful call to the *retrieveAssetIssuanceHistory*
+ method has been replaced with the new `hasMore` property.
+
+### Changes
+- Changed interface of *listMessages* method: first parameter renamed to `selector`; new parameters `limit` and `skip` added.
+- Changed interface of *retrieveAssetIssuanceHistory* method: new parameters `limit` and `skip` added.
+
+### New features
+- Added options (when instantiating API client) to send compressed data, which is on by default.
+- Added support for changes introduced by version 0.8 of the Catenis Enterprise API: "pagination" (limit/skip) for API
+ methods List Messages and Retrieve Asset Issuance History; new URI format for notification endpoints.
+
 ## [3.1.0] - 2019-05-29
 
 ### New features
