@@ -484,8 +484,8 @@ ctnApiClient.listMessages({
             if (data.msgCount > 0) {
                 console.log('Returned messages:', data.messages);
                 
-                if (data.countExceeded) {
-                    console.log('Warning: not all messages fulfilling search criteria have been returned!';
+                if (data.hasMore) {
+                    console.log('Not all messages have been returned');
                 }
             }
         }
@@ -651,8 +651,8 @@ ctnApiClient.retrieveAssetIssuanceHistory(assetId, '20170101T000000Z', null, 200
                 console.log('  - date of issuance:', issuanceEvent.date);
             });
 
-            if (data.countExceeded) {
-                console.log('Warning: not all asset issuance events that took place within the specified time frame have been returned!';
+            if (data.hasMore) {
+                console.log('Not all asset issuance events have been returned');
             }
         }
 });
