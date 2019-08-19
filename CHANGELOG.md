@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.0.1] - 2019-08-19
+
+### Changes
+- Updated README file to fix sample code for using API methods that had their interface changed in version 4.0.0 of the library.
+
 ## [4.0.0] - 2019-08-16
 
 ### Breaking changes
