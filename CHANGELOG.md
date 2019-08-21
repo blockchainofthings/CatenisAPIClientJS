@@ -1,5 +1,11 @@
 # Changelog
 
+## [4.0.2] - 2019-08-21
+
+### Fixes
+- Properly restore any version of the Stanford Javascript Crypto Library that might have been loaded before the Catenis
+ API client library is loaded.
+
 ## [4.0.1] - 2019-08-19
 
 ### Changes
