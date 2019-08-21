@@ -15,7 +15,7 @@
     //      (used above) already takes care of restoring any previous version that might had been
     //      loaded beforehand
     window.moment = context._ctnApiClientLibs.moment;
-    window.sjcl = _sjcl;//context._ctnApiClientLibs.sjcl;
+    window.sjcl = context._ctnApiClientLibs.sjcl;
     window.heir = context._ctnApiClientLibs.heir;
     window.pako = context._ctnApiClientLibs.pako;
 
