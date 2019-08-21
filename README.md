@@ -2,7 +2,7 @@
 
 This JavaScript library is used to make it easier to access the Catenis Enterprise API services from a web browser.
 
-This current release (4.0.1) targets version 0.8 of the Catenis Enterprise API.
+This current release (4.0.2) targets version 0.8 of the Catenis Enterprise API.
 
 ## Development
 
