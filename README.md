@@ -48,7 +48,7 @@ The following options can be used when instantiating the client:
 - **host** \[String\] - (optional, default: <b>*'catenis.io'*</b>) Host name (with optional port) of target Catenis API server.
 - **environment** \[String\] - (optional, default: <b>*'prod'*</b>) Environment of target Catenis API server. Valid values: *'prod'*, *'sandbox'*.
 - **secure** \[Boolean\] - (optional, default: ***true***) Indicates whether a secure connection (HTTPS) should be used.
-- **version** \[String\] - (optional, default: <b>*'0.8'*</b>) Version of Catenis API to target.
+- **version** \[String\] - (optional, default: <b>*'0.9'*</b>) Version of Catenis API to target.
 - **useCompression** \[Boolean\] - (optional, default: ***true***) Indicates whether request body should be compressed.
 - **compressThreshold** \[Number\] - (optional, default: ***1024***) Minimum size, in bytes, of request body for it to be compressed.
 
@@ -75,6 +75,7 @@ For example, you should expect the following data structure to be returned from 
 ctnApiClient.logMessage('My message', {
         encoding: 'utf8',
         encrypt: true,
+        offChain: true,
         storage: 'auto'
     },
     function (err, data) {
@@ -101,6 +102,7 @@ var logMsgChunk = function (msgParts, msgIdx, continuationToken) {
     }, {
         encoding: 'utf8',
         encrypt: true,
+        offChain: true,
         storage: 'auto'
     },
     function (err, data) {
@@ -162,6 +164,7 @@ var getAsyncProgress = function (provisionalMessageId) {
 ctnApiClient.logMessage('My message', {
         encoding: 'utf8',
         encrypt: true,
+        offChain: true,
         storage: 'auto',
         async: true
     },
@@ -187,6 +190,7 @@ ctnApiClient.sendMessage('My message', {
     }, {
         encoding: 'utf8',
         encrypt: true,
+        offChain: true,
         storage: 'auto',
         readConfirmation: true
     },
@@ -217,6 +221,7 @@ var sendMsgChunk = function (msgChunks, msgIdx, continuationToken) {
     }, {
         encoding: 'utf8',
         encrypt: true,
+        offChain: true,
         storage: 'auto',
         readConfirmation: true
     },
@@ -282,6 +287,7 @@ ctnApiClient.sendMessage('My message', {
     }, {
         encoding: 'utf8',
         encrypt: true,
+        offChain: true,
         storage: 'auto',
         readConfirmation: true,
         async: true
@@ -952,4 +958,4 @@ For further information on the Catenis Enterprise API, please reference the [Cat
 
 This JavaScript library is released under the [MIT License](LICENSE). Feel free to fork, and modify!
 
-Copyright © 2019, Blockchain of Things Inc.
+Copyright © 2020, Blockchain of Things Inc.

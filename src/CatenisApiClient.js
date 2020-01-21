@@ -42,7 +42,7 @@
     //      host: [String],              - (optional, default: 'catenis.io') Host name (with optional port) of target Catenis API server
     //      environment: [String],       - (optional, default: 'prod') Environment of target Catenis API server. Valid values: 'prod', 'sandbox' (or 'beta')
     //      secure: [Boolean],           - (optional, default: true) Indicates whether a secure connection (HTTPS) should be used
-    //      version: [String],           - (optional, default: '0.8') Version of Catenis API to target
+    //      version: [String],           - (optional, default: '0.9') Version of Catenis API to target
     //      useCompression: [Boolean],   - (optional, default: true) Indicates whether request body should be compressed. Note: modern
     //                                                               web browsers will always accept compressed request responses
     //      compressThreshold: [Number], - (optional, default: 1024) Minimum size, in bytes, of request body for it to be compressed
@@ -51,7 +51,7 @@
         var _host = 'catenis.io';
         var _subdomain = '';
         var _secure = true;
-        var _version = '0.8';
+        var _version = '0.9';
 
         this.useCompression = true;
         this.compressThreshold = 1024;
@@ -127,6 +127,10 @@
     //      encrypt:  [Boolean],  - (optional, default: true) Indicates whether message should be encrypted before storing. NOTE that, when message
     //                               is passed in chunks, this option is only taken into consideration (and thus only needs to be passed) for the
     //                               final message data chunk, and it shall be applied to the message's contents as a whole
+    //      offChain: [Boolean],  - (optional, default: true) Indicates whether message should be processed as a Catenis off-chain message. Catenis off-chain messages
+    //                               are stored on the external storage repository and only later its reference is settled to the blockchain along with references of
+    //                               other off-chain messages. NOTE that, when message is passed in chunks, this option is only taken into consideration (and thus
+    //                               only needs to be passed) for the final message data chunk, and it shall be applied to the message's contents as a whole
     //      storage: [String]     - (optional, default: "auto") One of the following values identifying where the message should be stored: "auto"|
     //                               "embedded"|"external". NOTE that, when message is passed in chunks, this option is only taken into consideration
     //                               (and thus only needs be passed) for the final message data chunk, and it shall be applied to the message's
@@ -183,6 +187,10 @@
     //      encrypt:  [Boolean],         - (optional, default: true) Indicates whether message should be encrypted before storing. NOTE that, when message
     //                                      is passed in chunks, this option is only taken into consideration (and thus only needs to be passed) for the
     //                                      final message data chunk, and it shall be applied to the message's contents as a whole
+    //      offChain: [Boolean],         - (optional, default: true) Indicates whether message should be processed as a Catenis off-chain message. Catenis off-chain messages
+    //                                      are stored on the external storage repository and only later its reference is settled to the blockchain along with references of
+    //                                      other off-chain messages. NOTE that, when message is passed in chunks, this option is only taken into consideration (and thus
+    //                                      only needs to be passed) for the final message data chunk, and it shall be applied to the message's contents as a whole
     //      storage: [String]            - (optional, default: "auto") One of the following values identifying where the message should be stored: "auto"|
     //                                      "embedded"|"external". NOTE that, when message is passed in chunks, this option is only taken into consideration
     //                                      (and thus only needs be passed) for the final message data chunk, and it shall be applied to the message's
