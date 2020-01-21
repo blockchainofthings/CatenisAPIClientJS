@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.0.0] - 2020-01-21
+
+### Breaking changes
+- When calling the *LogMessage* and *SendMessage* methods without specifying a value for the new `off-chain` property of
+ the *options* parameter, off-chain messages are used. Thus any existing code that uses those methods, when changed to
+ use this new version of the Catenis API client — provided that the client is instantiated with its default API version
+ (0.9) —, will produce a different result. To get the same behavior as before, the `off-chain` property of the *options*
+ parameter needs to be set to ***false***.
+
+### Changes
+- The default version of the Catenis Enterprise API (when instantiating the API client) is now set to 0.9.
+
+### New features
+- As a consequence for targeting version 0.9 of the Catenis Enterprise API, the new features introduced by that version
+ are supported: log, send, read and retrieve container info of Catenis off-chain messages.
+
 ## [4.0.2] - 2019-08-21
 
 ### Fixes
