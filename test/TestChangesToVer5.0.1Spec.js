@@ -1,4 +1,4 @@
-describe('Test changes to Catenis API client ver. 5.0.0.', function  () {
+describe('Test changes to Catenis API client ver. 5.0.1.', function  () {
     var device1 = {
         id: 'drc3XdxNtzoucpw9xiRp'
     };
