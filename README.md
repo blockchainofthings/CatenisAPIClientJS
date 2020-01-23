@@ -431,8 +431,14 @@ ctnApiClient.retrieveMessageContainer(messageId,
         }
         else {
             // Process returned data
-            console.log('ID of blockchain transaction containing the message:', data.blockchain.txid);
-
+            if (data.offChain) {
+                console.log('IPFS CID of Catenis off-chain message envelope:', data.offChain.cid);
+            }
+            
+            if (data.blockchain) {
+                console.log('ID of blockchain transaction containing the message:', data.blockchain.txid);
+            }
+    
             if (data.externalStorage) {
                 console.log('IPFS reference to message:', data.externalStorage.ipfs);
             }
