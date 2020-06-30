@@ -36,22 +36,29 @@
     // Api Client function class constructor
     //
     //  Parameters:
-    //    deviceId: [String]            - Catenis device ID
-    //    apiAccessSecret: [String]     - Catenis device's API access secret
+    //    deviceId: [String]            - (optional) Catenis device ID
+    //    apiAccessSecret: [String]     - (optional) Catenis device's API access secret
     //    options [Object] (optional) {
     //      host: [String],              - (optional, default: 'catenis.io') Host name (with optional port) of target Catenis API server
     //      environment: [String],       - (optional, default: 'prod') Environment of target Catenis API server. Valid values: 'prod', 'sandbox' (or 'beta')
     //      secure: [Boolean],           - (optional, default: true) Indicates whether a secure connection (HTTPS) should be used
-    //      version: [String],           - (optional, default: '0.9') Version of Catenis API to target
+    //      version: [String],           - (optional, default: '0.10') Version of Catenis API to target
     //      useCompression: [Boolean],   - (optional, default: true) Indicates whether request body should be compressed. Note: modern
     //                                                               web browsers will always accept compressed request responses
     //      compressThreshold: [Number], - (optional, default: 1024) Minimum size, in bytes, of request body for it to be compressed
     //    }
     function ApiClient(deviceId, apiAccessSecret, options) {
+        if (typeof deviceId === 'object' && deviceId !== null) {
+            // No device ID, only options
+            options = deviceId;
+            deviceId = undefined;
+            apiAccessSecret = undefined;
+        }
+
         var _host = 'catenis.io';
         var _subdomain = '';
         var _secure = true;
-        var _version = '0.9';
+        var _version = '0.10';
 
         this.useCompression = true;
         this.compressThreshold = 1024;
@@ -298,6 +305,39 @@
             success: procFunc,
             error: procFunc
         });
+    };
+
+    // Retrieve message origin
+    //
+    //  Parameters:
+    //    messageId: [String]   - ID of message to retrieve container info
+    //    msgToSign: [string]   - (optional) A message (any text) to be signed using the Catenis message's origin device's private key.
+    //                             The resulting signature can then later be independently verified to prove the Catenis message origin
+    //    callback: [Function]  - Callback function
+    ApiClient.prototype.retrieveMessageOrigin = function (messageId, msgToSign, callback) {
+        if (typeof msgToSign === 'function') {
+            callback = msgToSign;
+            msgToSign = undefined;
+        }
+
+        var params = {
+            url: [
+                messageId
+            ]
+        };
+
+        if (msgToSign) {
+            params.query = {
+                msgToSign: msgToSign
+            };
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'messages/:messageId/origin', params, {
+            success: procFunc,
+            error: procFunc
+        }, true);
     };
 
     // Retrieve asynchronous message processing progress
@@ -1062,7 +1102,7 @@
         return this.rootApiEndPoint + formatMethodPath(methodPath, params).replace(/\/{2,}/g,'/');
     }
 
-    function postRequest(methodPath, params, data, result) {
+    function postRequest(methodPath, params, data, result, doNotSign) {
         var reqParams = {
             url: assembleMethodEndPointUrl.call(this, methodPath, params),
             contentType: "application/json",
@@ -1082,12 +1122,14 @@
             reqParams.data = _pako.deflate(reqParams.data);
         }
 
-        signRequest.call(this, reqParams);
+        if (!doNotSign) {
+            signRequest.call(this, reqParams);
+        }
 
         _jQuery.ajax(reqParams);
     }
 
-    function getRequest(methodPath, params, result) {
+    function getRequest(methodPath, params, result, doNotSign) {
         var reqParams = {
             url: assembleMethodEndPointUrl.call(this, methodPath, params),
             type: "GET",
@@ -1098,7 +1140,9 @@
         // NOTE: modern web browsers will always set the 'Accept-Encoding' header of AJAX requests
         //        to accept compressed request responses and will not allow it to be overwritten
 
-        signRequest.call(this, reqParams);
+        if (!doNotSign) {
+            signRequest.call(this, reqParams);
+        }
 
         _jQuery.ajax(reqParams);
     }

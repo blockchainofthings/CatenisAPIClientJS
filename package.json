@@ -9,7 +9,7 @@
     "bower": "^1.8.8",
     "gulp": "^4.0.2",
     "gulp-jasmine-browser": "^4.1.0",
-    "jasmine-core": "^3.3.0",
+    "jasmine-core": "^3.5.0",
     "plugin-error": "^1.0.1",
     "puppeteer": "^1.17.0",
     "uglify-js": "^2.8.18"

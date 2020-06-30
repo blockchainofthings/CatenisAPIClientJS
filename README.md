@@ -41,6 +41,15 @@ var ctnApiClient = new CatenisApiClient(deviceId, apiAccessSecret, {
 });
 ```
 
+Optionally, the client can be instantiated without passing both the `deviceId` and the `apiAccessSecret` parameters as
+ shown below. In this case, the resulting client object should be used to call only **public** API methods.
+
+```JavaScript
+var ctnApiClient = new CatenisApiClient({
+    environment: 'sandbox'
+});
+```
+
 #### Constructor options
 
 The following options can be used when instantiating the client:
@@ -48,7 +57,7 @@ The following options can be used when instantiating the client:
 - **host** \[String\] - (optional, default: <b>*'catenis.io'*</b>) Host name (with optional port) of target Catenis API server.
 - **environment** \[String\] - (optional, default: <b>*'prod'*</b>) Environment of target Catenis API server. Valid values: *'prod'*, *'sandbox'*.
 - **secure** \[Boolean\] - (optional, default: ***true***) Indicates whether a secure connection (HTTPS) should be used.
-- **version** \[String\] - (optional, default: <b>*'0.9'*</b>) Version of Catenis API to target.
+- **version** \[String\] - (optional, default: <b>*'0.10'*</b>) Version of Catenis API to target.
 - **useCompression** \[Boolean\] - (optional, default: ***true***) Indicates whether request body should be compressed.
 - **compressThreshold** \[Number\] - (optional, default: ***1024***) Minimum size, in bytes, of request body for it to be compressed.
 
@@ -441,6 +450,31 @@ ctnApiClient.retrieveMessageContainer(messageId,
     
             if (data.externalStorage) {
                 console.log('IPFS reference to message:', data.externalStorage.ipfs);
+            }
+        }
+});
+```
+
+### Retrieving information about a message's origin
+
+```JavaScript
+ctnApiClient.retrieveMessageOrigin(messageId, 'Any text to be signed'
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            if (data.tx) {
+                console.log('Catenis message transaction info:', data.tx);
+            }
+
+            if (data.offChainMsgEnvelope) {
+                console.log('Off-chain message envelope info:', data.offChainMsgEnvelope);
+            }
+
+            if (data.proof) {
+                console.log('Origin proof info:', data.proof);
             }
         }
 });
