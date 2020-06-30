@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.1.0] - 2020-07-01
+
+### New features
+- Added support for changes introduced by version 0.10 of the Catenis Enterprise API: new public API method Retrieve
+ Message Origin.
+
 ## [5.0.1] - 2020-01-23
 
 ### Changes
