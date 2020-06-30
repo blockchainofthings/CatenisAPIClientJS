@@ -1136,7 +1136,7 @@
         confReq += essentialHeaders + '\n';
         confReq += hashData(reqParams.data || '') + '\n';
 
-        // Second step: assemble string to find
+        // Second step: assemble string to sign
         var strToSign = signMethodId + '\n';
         strToSign += timestamp + '\n';
 
