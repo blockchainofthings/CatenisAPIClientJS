@@ -310,7 +310,7 @@
     // Retrieve message origin
     //
     //  Parameters:
-    //    messageId: [String]   - ID of message to retrieve container info
+    //    messageId: [String]   - ID of message to retrieve origin info
     //    msgToSign: [string]   - (optional) A message (any text) to be signed using the Catenis message's origin device's private key.
     //                             The resulting signature can then later be independently verified to prove the Catenis message origin
     //    callback: [Function]  - Callback function
