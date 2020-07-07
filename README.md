@@ -458,7 +458,7 @@ ctnApiClient.retrieveMessageContainer(messageId,
 ### Retrieving information about a message's origin
 
 ```JavaScript
-ctnApiClient.retrieveMessageOrigin(messageId, 'Any text to be signed'
+ctnApiClient.retrieveMessageOrigin(messageId, 'Any text to be signed',
     function (err, data) {
         if (err) {
             // Process error
