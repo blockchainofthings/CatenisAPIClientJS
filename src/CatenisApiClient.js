@@ -387,13 +387,13 @@
     //                                           by the device that issued the request (action = "log"); sent, in case of messages sent from the current
     //                                           device (action = "send" direction = "outbound"); or received, in case of messages sent to
     //                                           the device that issued the request (action = "send" and direction = "inbound")
-    //                                           Note: if a string is passed, it should be an ISO8601 formatter date/time
+    //                                           Note: if a string is passed, it should be an ISO 8601 formatted date/time
     //      endDate: [String|Object(Date)]    - (optional) - Date and time specifying the upper boundary of the time frame within
     //                                           which the messages intended to be retrieved has been: logged, in case of messages logged
     //                                           by the device that issued the request (action = "log"); sent, in case of messages sent from the current
     //                                           device (action = "send" direction = "outbound"); or received, in case of messages sent to
     //                                           the device that issued the request (action = "send" and direction = "inbound")
-    //                                           Note: if a string is passed, it should be an ISO8601 formatter date/time
+    //                                           Note: if a string is passed, it should be an ISO 8601 formatted date/time
     //    }
     //    limit: [Number]  - (default: 500) Maximum number of messages that should be returned
     //    skip: [Number]   - (default: 0) Number of messages that should be skipped (from beginning of list of matching messages) and not returned
@@ -949,11 +949,11 @@
     //    startDate [String|Object(Date)] - (optional) Date and time specifying the lower boundary of the time frame within
     //                                       which the issuance events intended to be retrieved have occurred. The returned
     //                                       issuance events must have occurred not before that date/time
-    //                                       Note: if a string is passed, it should be an ISO8601 formatter date/time
+    //                                       Note: if a string is passed, it should be an ISO 8601 formatted date/time
     //    endDate [String|Object(Date)]   - (optional) Date and time specifying the upper boundary of the time frame within
     //                                       which the issuance events intended to be retrieved have occurred. The returned
     //                                       issuance events must have occurred not after that date/time
-    //                                       Note: if a string is passed, it should be an ISO8601 formatter date/time
+    //                                       Note: if a string is passed, it should be an ISO 8601 formatted date/time
     //    limit: [Number] - (default: 500) Maximum number of asset issuance events that should be returned
     //    skip: [Number]  - (default: 0) Number of asset issuance events that should be skipped (from beginning of list of matching events) and not returned
     //    callback: [Function]      - Callback function

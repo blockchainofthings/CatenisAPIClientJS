@@ -544,7 +544,7 @@ ctnApiClient.listMessages({
  `fromDeviceIds` and `fromDeviceProdUniqueIds` and parameters `toDeviceIds` and `toDeviceProdUniqueIds` are replaced with
  fields `fromDevices` and `toDevices`, respectively. Those fields take an array of device ID objects, which is the same
  type of object taken by the first parameter (`targetDevice`) of the *sendMessage* method. Also, the date fields,
- `startDate` and `endDate`, accept not only strings containing ISO8601 formatted dates/times but also *Date* objects.
+ `startDate` and `endDate`, accept not only strings containing ISO 8601 formatted dates/times but also *Date* objects.
 
 ### Issuing an amount of a new asset
 
@@ -706,7 +706,7 @@ ctnApiClient.retrieveAssetIssuanceHistory(assetId, '20170101T000000Z', null, 200
 
 > **Note**: the parameters of the *retrieveAssetIssuanceHistory* method are slightly different from the ones taken by
 >the Retrieve Asset Issuance History Catenis API method. In particular, the date parameters, `startDate` and `endDate`,
->accept not only strings containing ISO8601 formatted dates/times but also *Date* objects.
+>accept not only strings containing ISO 8601 formatted dates/times but also *Date* objects.
 
 ### Listing devices that currently hold any amount of a given asset
 
