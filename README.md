@@ -539,7 +539,7 @@ ctnApiClient.listMessages({
 ```
 
 > **Note**: the parameters taken by the *listMessages* method do not exactly match the parameters taken by the List
- Messages Catenis API method. Most of the parameters, with the exception of the last two (`limit` and `skip`), are
+ Messages Catenis API method. Most of the parameters, except for the last two (`limit` and `skip`), are
  mapped to fields of the first parameter (`selector`) of the *listMessages* method with a few singularities: parameters
  `fromDeviceIds` and `fromDeviceProdUniqueIds` and parameters `toDeviceIds` and `toDeviceProdUniqueIds` are replaced with
  fields `fromDevices` and `toDevices`, respectively. Those fields take an array of device ID objects, which is the same
@@ -704,7 +704,7 @@ ctnApiClient.retrieveAssetIssuanceHistory(assetId, '20170101T000000Z', null, 200
 });
 ```
 
-> **Note**: the parameters of the *retrieveAssetIssuanceHistory* method are slightly different than the ones taken by
+> **Note**: the parameters of the *retrieveAssetIssuanceHistory* method are slightly different from the ones taken by
 >the Retrieve Asset Issuance History Catenis API method. In particular, the date parameters, `startDate` and `endDate`,
 >accept not only strings containing ISO8601 formatted dates/times but also *Date* objects.
 
