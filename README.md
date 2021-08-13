@@ -719,10 +719,17 @@ ctnApiClient.listAssetHolders(assetId, 200, 0,
         else {
             // Process returned data
             data.assetHolders.forEach(function (assetHolder, idx) {
-                console.log('Asset holder #', idx + 1, ':');
-                console.log('  - device holding an amount of the asset:', assetHolder.holder);
-                console.log('  - amount of asset currently held by device:', assetHolder.balance.total);
-                console.log('  - amount not yet confirmed:', assetHolder.balance.unconfirmed);
+                if (!assetHolder.migrated) {
+                    console.log('Asset holder #', idx + 1, ':');
+                    console.log('  - device holding an amount of the asset:', assetHolder.holder);
+                    console.log('  - amount of asset currently held by device:', assetHolder.balance.total);
+                    console.log('  - amount not yet confirmed:', assetHolder.balance.unconfirmed);
+                }
+                else {
+                 console.log('Migrated asset:');
+                 console.log('  - total migrated amount:', assetHolder.balance.total);
+                 console.log('  - amount not yet confirmed:', assetHolder.balance.unconfirmed);
+                }
             });
 
             if (data.hasMore) {
@@ -731,6 +738,282 @@ ctnApiClient.listAssetHolders(assetId, 200, 0,
         }
 });
 ```
+
+### Exporting an asset to a foreign blockchain
+
+#### Estimating the export cost in the foreign blockchain's native coin
+
+```JavaScript
+var foreignBlockchain = 'ethereum';
+
+ctnApiClient.exportAsset(assetId, foreignBlockchain, {
+    name: 'Test Catenis token #01',
+    symbol: 'CTK01'
+}, {
+    estimateOnly: true
+}, function (error, data) {
+    if (error) {
+        // Process error
+    }
+    else {
+        // Process returned data
+        console.log('Estimated foreign blockchain transaction execution price:', data.estimatedPrice);
+    }
+});
+```
+
+#### Doing the export
+
+```JavaScript
+var getExportOutcome = function (assetId, foreignBlockchain) {
+    ctnApiClient.assetExportOutcome(assetId, foreignBlockchain, function(error, data) {
+        if (error) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            if (data.status === 'success') {
+                // Asset successfully exported
+                console.log('Foreign token ID (address):', data.token.id);
+            }
+            else if (data.status === 'pending') {
+                // Final asset export state not yet reached. Continue polling
+                setTimeout(getExportOutcome, 1000, assetId, foreignBlockchain);
+            }
+            else {
+                // Asset export has failed. Process error
+                console.error('Error executing foreign blockchain transaction:', data.foreignTransaction.error);
+            }
+        }
+    });
+};
+
+var foreignBlockchain = 'ethereum';
+
+ctnApiClient.exportAsset(assetId, 'ethereum', {
+    name: 'Test Catenis token #01',
+    symbol: 'CTK01'
+}, function (error, data) {
+    if (error) {
+        // Process error
+    }
+    else {
+        // Process returned data
+        console.log('Foreign blockchain transaction ID (hash):', data.foreignBlockchain.id);
+        
+        // Start polling for asset export outcome
+        setTimeout(getExportOutcome, 1000, assetId, foreignBlockchain);
+    }
+});
+```
+
+### Migrating an asset amount to a foreign blockchain
+
+#### Estimating the migration cost in the foreign blockchain's native coin
+
+```JavaScript
+var foreignBlockchain = 'ethereum';
+
+ctnApiClient.migrateAsset(assetId, foreignBlockchain, {
+    direction: 'outward',
+    amount: 50,
+    destAddress: '0xe247c9BfDb17e7D8Ae60a744843ffAd19C784943'
+}, {
+    estimateOnly: true
+}, function (error, data) {
+    if (error) {
+        // Process error
+    }
+    else {
+        // Process returned data
+        console.log('Estimated foreign blockchain transaction execution price:', data.estimatedPrice);
+    }
+});
+```
+
+#### Doing the migration
+
+```JavaScript
+var getMigrationOutcome = function (migrationId) {
+    ctnApiClient.assetMigrationOutcome(migrationId, function(error, data) {
+        if (error) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            if (data.status === 'success') {
+                // Asset amount successfully migrated
+                console.log('Asset amount successfully migrated');
+            }
+            else if (data.status === 'pending') {
+                // Final asset migration state not yet reached. Continue polling
+                setTimeout(getMigrationOutcome, 1000, migrationId);
+            }
+            else {
+                // Asset migration has failed. Process error
+                if (data.catenisService.error) {
+                    console.error('Error executing Catenis service:', data.catenisService.error);
+                }
+                
+                if (data.foreignTransaction.error) {
+                    console.error('Error executing foreign blockchain transaction:', data.foreignTransaction.error);
+                }
+            }
+        }
+    });
+};
+
+var foreignBlockchain = 'ethereum';
+
+ctnApiClient.migrateAsset(assetId, foreignBlockchain, {
+    direction: 'outward',
+    amount: 50,
+    destAddress: '0xe247c9BfDb17e7D8Ae60a744843ffAd19C784943'
+}, function (error, data) {
+    if (error) {
+        // Process error
+    }
+    else {
+        // Process returned data
+        console.log('Asset migration ID:', data.migrationId);
+    
+        // Start polling for asset migration outcome
+        setTimeout(getMigrationOutcome, 1000, data.migrationId);
+    }
+});
+```
+
+#### Reprocessing a (failed) migration
+
+```JavaScript
+var foreignBlockchain = 'ethereum';
+
+ctnApiClient.migrateAsset(assetId, foreignBlockchain, migrationId, function (error, data) {
+    if (error) {
+        // Process error
+    }
+    else {
+        // Start polling for asset migration outcome
+    }
+});
+```
+
+### Getting asset export outcome
+
+```JavaScript
+var foreignBlockchain = 'ethereum';
+
+ctnApiClient.assetExportOutcome(assetId, foreignBlockchain, function(error, data) {
+    if (error) {
+        // Process error
+    }
+    else {
+        // Process returned data
+        if (data.status === 'success') {
+            // Asset successfully exported
+            console.log('Foreign token ID (address):', data.token.id);
+        }
+        else if (data.status === 'pending') {
+            // Final asset export state not yet reached
+        }
+        else {
+            // Asset export has failed. Process error
+            console.error('Error executing foreign blockchain transaction:', data.foreignTransaction.error);
+        }
+    }
+});
+```
+
+### Getting asset migration outcome
+
+```JavaScript
+ctnApiClient.assetMigrationOutcome(migrationId, function(error, data) {
+    if (error) {
+        // Process error
+    }
+    else {
+        // Process returned data
+        if (data.status === 'success') {
+            // Asset amount successfully migrated
+            console.log('Asset amount successfully migrated');
+        }
+        else if (data.status === 'pending') {
+            // Final asset migration state not yet reached
+        }
+        else {
+            // Asset migration has failed. Process error
+            if (data.catenisService.error) {
+                console.error('Error executing Catenis service:', data.catenisService.error);
+            }
+            
+            if (data.foreignTransaction.error) {
+                console.error('Error executing foreign blockchain transaction:', data.foreignTransaction.error);
+            }
+        }
+    }
+});
+```
+
+### Listing exported assets
+
+```JavaScript
+ctnApiClient.listExportedAssets({
+    foreignBlockchain: 'ethereum',
+    status: 'success',
+    startDate: new Date('2021-08-01')
+}, 200, 0, function (error, data) {
+    if (error) {
+        // Process error
+    }
+    else {
+        // Process returned data
+        if (data.exportedAssets.length > 0) {
+            console.log('Returned asset exports:', data.exportedAssets);
+            
+            if (data.hasMore) {
+                console.log('Not all asset exports have been returned');
+            }
+        }
+    }
+});
+```
+
+> **Note**: the parameters taken by the *listExportedAssets* method do not exactly match the parameters taken by the
+ List Exported Assets Catenis API method. Most of the parameters, except for the last two (`limit` and `skip`), are
+ mapped to fields of the first parameter (`selector`) of the *listExportedAssets* method with a few singularities: the
+ date fields, `startDate` and `endDate`, accept not only strings containing ISO 8601 formatted dates/times but also
+ *Date* objects.
+
+### Listing asset migrations
+
+```JavaScript
+ctnApiClient.listAssetMigrations({
+    foreignBlockchain: 'ethereum',
+    direction: 'outward',
+    status: 'success',
+    startDate: new Date('2021-08-01')
+}, 200, 0, function (error, data) {
+    if (error) {
+        // Process error
+    }
+    else {
+        // Process returned data
+        if (data.assetMigrations.length > 0) {
+            console.log('Returned asset migrations:', data.assetMigrations);
+            
+            if (data.hasMore) {
+                console.log('Not all asset migrations have been returned');
+            }
+        }
+    }
+});
+```
+
+> **Note**: the parameters taken by the *listAssetMigrations* method do not exactly match the parameters taken by the
+ List Asset Migrations Catenis API method. Most of the parameters, except for the last two (`limit` and `skip`), are
+ mapped to fields of the first parameter (`selector`) of the *listAssetMigrations* method with a few singularities: the
+ date fields, `startDate` and `endDate`, accept not only strings containing ISO 8601 formatted dates/times but also
+ *Date* objects.
 
 ### Listing system defined permission events
 

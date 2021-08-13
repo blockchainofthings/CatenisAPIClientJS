@@ -42,7 +42,7 @@
     //      host: [String],              - (optional, default: 'catenis.io') Host name (with optional port) of target Catenis API server
     //      environment: [String],       - (optional, default: 'prod') Environment of target Catenis API server. Valid values: 'prod', 'sandbox' (or 'beta')
     //      secure: [Boolean],           - (optional, default: true) Indicates whether a secure connection (HTTPS) should be used
-    //      version: [String],           - (optional, default: '0.10') Version of Catenis API to target
+    //      version: [String],           - (optional, default: '0.11') Version of Catenis API to target
     //      useCompression: [Boolean],   - (optional, default: true) Indicates whether request body should be compressed. Note: modern
     //                                                               web browsers will always accept compressed request responses
     //      compressThreshold: [Number], - (optional, default: 1024) Minimum size, in bytes, of request body for it to be compressed
@@ -58,7 +58,7 @@
         var _host = 'catenis.io';
         var _subdomain = '';
         var _secure = true;
-        var _version = '0.10';
+        var _version = '0.11';
 
         this.useCompression = true;
         this.compressThreshold = 1024;
@@ -1082,6 +1082,381 @@
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
         getRequest.call(this, 'assets/:assetId/holders', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Export an asset to a foreign blockchain, by creating a new (ERC-20 compliant) token on that blockchain
+    //
+    //  Parameters:
+    //    assetId [String]     - The ID of asset to export
+    //    foreignBlockchain: [String]  - The key identifying the foreign blockchain. Valid options: 'ethereum',
+    //                                    'binance', 'polygon'
+    //    token: {
+    //      name: [String],            - The name of the token to be created on the foreign blockchain
+    //      symbol: [String]           - The symbol of the token to be created on the foreign blockchain
+    //    }
+    //    options: {           - (optional)
+    //      consumptionProfile: [String],  - (optional) Name of the foreign blockchain's native coin consumption profile
+    //                                        to use. Valid options: fastest, fast, average, slow
+    //      estimateOnly: [Boolean]        - (optional, default: false) Indicates that no asset export should be done.
+    //                                        Instead, only the estimated price (in the foreign blockchain's native
+    //                                        coin) to fulfill the operation should be returned
+    //    }
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.exportAsset = function (assetId, foreignBlockchain, token, options, callback) {
+        if (typeof options === 'function') {
+            callback = options;
+            options = undefined;
+        }
+
+        var params = {
+            url: [
+                assetId,
+                foreignBlockchain
+            ]
+        };
+
+        var data = {
+            token: token
+        };
+
+        if (options) {
+            data.options = options;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        postRequest.call(this, 'assets/:assetId/export/:foreignBlockchain', params, data, {
+            success: procFunc,
+            error: procFunc
+        })
+    };
+
+
+    // Migrate an amount of a previously exported asset to/from the foreign blockchain token
+    //
+    //  Parameters:
+    //    assetId [String]     - The ID of the asset to migrate an amount of it
+    //    foreignBlockchain: [String]  - The key identifying the foreign blockchain. Valid options: 'ethereum',
+    //                                    'binance', 'polygon'
+    //    migration: [Object|String] { - Object describing a new asset migration, or the ID of the asset migration to be
+    //                                    reprocessed
+    //      direction: [String],           - The direction of the migration. Valid options: 'outward', 'inward'
+    //      amount: [Number],              - The amount (as a decimal value) of the asset to be migrated
+    //      destAddress: [String]          - (optional) The address of the account on the foreign blockchain that should
+    //                                        be credited with the specified amount of the foreign token
+    //    }
+    //    options: {           - (optional)
+    //      consumptionProfile: [String],  - (optional) Name of the foreign blockchain's native coin consumption profile
+    //                                        to use. Valid options: fastest, fast, average, slow
+    //      estimateOnly: [Boolean]        - (optional, default: false) Indicates that no asset export should be done.
+    //                                        Instead, only the estimated price (in the foreign blockchain's native
+    //                                        coin) to fulfill the operation should be returned
+    //    }
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.migrateAsset = function (assetId, foreignBlockchain, migration, options, callback) {
+        if (typeof options === 'function') {
+            callback = options;
+            options = undefined;
+        }
+
+        var params = {
+            url: [
+                assetId,
+                foreignBlockchain
+            ]
+        };
+
+        var data = {
+            migration: migration
+        };
+
+        if (options) {
+            data.options = options;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        postRequest.call(this, 'assets/:assetId/migrate/:foreignBlockchain', params, data, {
+            success: procFunc,
+            error: procFunc
+        })
+    };
+
+    // Retrieve the current information about the outcome of an asset export
+    //
+    //  Parameters:
+    //    assetId [String]     - The ID of the asset that was exported
+    //    foreignBlockchain: [String]  - The key identifying the foreign blockchain. Valid options: 'ethereum',
+    //                                    'binance', 'polygon'
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.assetExportOutcome = function (assetId, foreignBlockchain, callback) {
+        var params = {
+            url: [
+                assetId,
+                foreignBlockchain
+            ]
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/:assetId/export/:foreignBlockchain', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Retrieve the current information about the outcome of an asset migration
+    //
+    //  Parameters:
+    //    migrationId [String]     - The ID of the asset migration
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.assetMigrationOutcome = function (migrationId, callback) {
+        var params = {
+            url: [
+                migrationId
+            ]
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/migrations/:migrationId', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Retrieves a list of issued asset exports that satisfy a given search criteria
+    //
+    //  Parameters:
+    //    selector [Object] {  - (optional)
+    //      assetId: [String],            - (optional) The ID of the exported asset
+    //      foreignBlockchain: [String],  - (optional) The key identifying the foreign blockchain to where the asset
+    //                                       has been exported. Valid options: 'ethereum', 'binance', 'polygon'
+    //      tokenSymbol: [String],        - (optional) The symbol of the resulting foreign token
+    //      status: [String],             - (optional) A single status or a comma-separated list of statuses to include.
+    //                                       Valid options: pending, success, error
+    //      negateStatus: [Boolean],      - (optional, default: false) Boolean value indicating whether the specified
+    //                                       statuses should be excluded instead
+    //      startDate: [Date|String],     - (optional) Date and time specifying the inclusive lower bound of the time
+    //                                       frame within which the asset has been exported. If a string is passed, it
+    //                                       should be an ISO 8601 formatted date/time
+    //      endDate: [Date|String]        - (optional) Date and time specifying the inclusive upper bound of the time
+    //                                       frame within which the asset has been exported. If a string is passed, it
+    //                                       should be an ISO 8601 formatted date/time
+    //    }
+    //    limit [Number] - (optional, default: 500) Maximum number of asset exports that should be returned. Must be a
+    //                      positive integer value not greater than 500
+    //    skip [Number]  - (optional, default: 0) Number of asset exports that should be skipped (from beginning of list
+    //                      of matching asset exports) and not returned. Must be a non-negative (includes zero) integer
+    //                      value
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.listExportedAssets = function (selector, limit, skip, callback) {
+        if (typeof selector === 'function') {
+            callback = selector;
+            selector = undefined;
+            limit = undefined;
+            skip = undefined;
+        }
+        else if (typeof limit === 'function') {
+            callback = limit;
+            limit = undefined;
+            skip = undefined;
+        }
+        else if (typeof skip === 'function') {
+            callback = skip;
+            skip = undefined;
+        }
+
+        var params = undefined;
+
+        if (selector) {
+            params = {
+                query: {}
+            };
+
+            if (selector.assetId) {
+                params.query.assetId = selector.assetId;
+            }
+
+            if (selector.foreignBlockchain) {
+                params.query.foreignBlockchain = selector.foreignBlockchain;
+            }
+
+            if (selector.tokenSymbol) {
+                params.query.tokenSymbol = selector.tokenSymbol;
+            }
+
+            if (selector.status) {
+                params.query.status = selector.status;
+            }
+
+            if (selector.negateStatus) {
+                params.query.negateStatus = selector.negateStatus;
+            }
+
+            if (selector.startDate) {
+                if (typeof selector.startDate === 'string' && selector.startDate.length > 0) {
+                    params.query.startDate = selector.startDate;
+                }
+                else if (selector.startDate instanceof Date) {
+                    params.query.startDate = selector.startDate.toISOString();
+                }
+            }
+
+            if (selector.endDate) {
+                if (typeof selector.endDate === 'string' && selector.endDate.length > 0) {
+                    params.query.endDate = selector.endDate;
+                }
+                else if (selector.endDate instanceof Date) {
+                    params.query.endDate = selector.endDate.toISOString();
+                }
+            }
+        }
+
+        if (limit) {
+            if (!params) {
+                params = {
+                    query: {}
+                };
+            }
+
+            params.query.limit = limit;
+        }
+
+        if (skip) {
+            if (!params) {
+                params = {
+                    query: {}
+                };
+            }
+
+            params.query.skip = skip;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/exported', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    };
+
+    // Retrieves a list of issued asset migrations that satisfy a given search criteria
+    //
+    //  Parameters:
+    //    selector [Object] {  - (optional)
+    //      assetId: [String],            - (optional) The ID of the asset the amount of which has been migrated
+    //      foreignBlockchain: [String],  - (optional) The key identifying the foreign blockchain to/from where the
+    //                                       asset amount has been migrated. Valid options: 'ethereum', 'binance',
+    //                                       'polygon'
+    //      direction: [String],          - (optional) The direction of the migration. Valid options: 'outward',
+    //                                       'inward'
+    //      status: [String],             - (optional) A single status or a comma-separated list of statuses to include.
+    //                                       Valid options: pending, success, error
+    //      negateStatus: [Boolean],      - (optional, default: false) Boolean value indicating whether the specified
+    //                                       statuses should be excluded instead
+    //      startDate: [Date|String],     - (optional) Date and time specifying the inclusive lower bound of the time
+    //                                       frame within which the asset amount has been migrated. If a string is
+    //                                       passed, it should be an ISO 8601 formatted date/time
+    //      endDate: [Date|String]        - (optional) Date and time specifying the inclusive upper bound of the time
+    //                                       frame within which the asset amount has been migrated. If a string is
+    //                                       passed, it should be an ISO 8601 formatted date/time
+    //    }
+    //    limit [Number] - (optional, default: 500) Maximum number of asset migrations that should be returned. Must be
+    //                      a positive integer value not greater than 500
+    //    skip [Number]  - (optional, default: 0) Number of asset migrations that should be skipped (from beginning of
+    //                      list of matching asset migrations) and not returned. Must be a non-negative (includes zero)
+    //                      integer value
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.listAssetMigrations = function (selector, limit, skip, callback) {
+        if (typeof selector === 'function') {
+            callback = selector;
+            selector = undefined;
+            limit = undefined;
+            skip = undefined;
+        }
+        else if (typeof limit === 'function') {
+            callback = limit;
+            limit = undefined;
+            skip = undefined;
+        }
+        else if (typeof skip === 'function') {
+            callback = skip;
+            skip = undefined;
+        }
+
+        var params = undefined;
+
+        if (selector) {
+            params = {
+                query: {}
+            };
+
+            if (selector.assetId) {
+                params.query.assetId = selector.assetId;
+            }
+
+            if (selector.foreignBlockchain) {
+                params.query.foreignBlockchain = selector.foreignBlockchain;
+            }
+
+            if (selector.direction) {
+                params.query.direction = selector.direction;
+            }
+
+            if (selector.status) {
+                params.query.status = selector.status;
+            }
+
+            if (selector.negateStatus) {
+                params.query.negateStatus = selector.negateStatus;
+            }
+
+            if (selector.startDate) {
+                if (typeof selector.startDate === 'string' && selector.startDate.length > 0) {
+                    params.query.startDate = selector.startDate;
+                }
+                else if (selector.startDate instanceof Date) {
+                    params.query.startDate = selector.startDate.toISOString();
+                }
+            }
+
+            if (selector.endDate) {
+                if (typeof selector.endDate === 'string' && selector.endDate.length > 0) {
+                    params.query.endDate = selector.endDate;
+                }
+                else if (selector.endDate instanceof Date) {
+                    params.query.endDate = selector.endDate.toISOString();
+                }
+            }
+        }
+
+        if (limit) {
+            if (!params) {
+                params = {
+                    query: {}
+                };
+            }
+
+            params.query.limit = limit;
+        }
+
+        if (skip) {
+            if (!params) {
+                params = {
+                    query: {}
+                };
+            }
+
+            params.query.skip = skip;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/migrations', params, {
             success: procFunc,
             error: procFunc
         });
