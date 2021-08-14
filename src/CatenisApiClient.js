@@ -1134,7 +1134,6 @@
         })
     };
 
-
     // Migrate an amount of a previously exported asset to/from the foreign blockchain token
     //
     //  Parameters:
