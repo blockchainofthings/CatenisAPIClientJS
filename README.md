@@ -726,9 +726,9 @@ ctnApiClient.listAssetHolders(assetId, 200, 0,
                     console.log('  - amount not yet confirmed:', assetHolder.balance.unconfirmed);
                 }
                 else {
-                 console.log('Migrated asset:');
-                 console.log('  - total migrated amount:', assetHolder.balance.total);
-                 console.log('  - amount not yet confirmed:', assetHolder.balance.unconfirmed);
+                    console.log('Migrated asset:');
+                    console.log('  - total migrated amount:', assetHolder.balance.total);
+                    console.log('  - amount not yet confirmed:', assetHolder.balance.unconfirmed);
                 }
             });
 
