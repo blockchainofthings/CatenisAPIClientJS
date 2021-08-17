@@ -790,7 +790,7 @@ var getExportOutcome = function (assetId, foreignBlockchain) {
 
 var foreignBlockchain = 'ethereum';
 
-ctnApiClient.exportAsset(assetId, 'ethereum', {
+ctnApiClient.exportAsset(assetId, foreignBlockchain, {
     name: 'Test Catenis token #01',
     symbol: 'CTK01'
 }, function (error, data) {
@@ -799,7 +799,7 @@ ctnApiClient.exportAsset(assetId, 'ethereum', {
     }
     else {
         // Process returned data
-        console.log('Foreign blockchain transaction ID (hash):', data.foreignBlockchain.id);
+        console.log('Foreign blockchain transaction ID (hash):', data.foreignTransaction.id);
         
         // Start polling for asset export outcome
         setTimeout(getExportOutcome, 1000, assetId, foreignBlockchain);
