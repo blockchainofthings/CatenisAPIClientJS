@@ -719,7 +719,7 @@ ctnApiClient.listAssetHolders(assetId, 200, 0,
         else {
             // Process returned data
             data.assetHolders.forEach(function (assetHolder, idx) {
-                if (!assetHolder.migrated) {
+                if (assetHolder.holder) {
                     console.log('Asset holder #', idx + 1, ':');
                     console.log('  - device holding an amount of the asset:', assetHolder.holder);
                     console.log('  - amount of asset currently held by device:', assetHolder.balance.total);
