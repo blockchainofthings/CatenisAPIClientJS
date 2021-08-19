@@ -1100,9 +1100,9 @@
     //    options: {           - (optional)
     //      consumptionProfile: [String],  - (optional) Name of the foreign blockchain's native coin consumption profile
     //                                        to use. Valid options: 'fastest', 'fast', 'average', 'slow'
-    //      estimateOnly: [Boolean]        - (optional, default: false) Indicates that no asset export should be done.
-    //                                        Instead, only the estimated price (in the foreign blockchain's native
-    //                                        coin) to fulfill the operation should be returned
+    //      estimateOnly: [Boolean]        - (optional, default: false) When set, indicates that no asset export should
+    //                                        be executed but only the estimated price (in the foreign blockchain's
+    //                                        native coin) to fulfill the operation should be returned
     //    }
     //    callback: [Function] - Callback function
     ApiClient.prototype.exportAsset = function (assetId, foreignBlockchain, token, options, callback) {
@@ -1150,9 +1150,9 @@
     //    options: {           - (optional)
     //      consumptionProfile: [String],  - (optional) Name of the foreign blockchain's native coin consumption profile
     //                                        to use. Valid options: 'fastest', 'fast', 'average', 'slow'
-    //      estimateOnly: [Boolean]        - (optional, default: false) Indicates that no asset export should be done.
-    //                                        Instead, only the estimated price (in the foreign blockchain's native
-    //                                        coin) to fulfill the operation should be returned
+    //      estimateOnly: [Boolean]        - (optional, default: false) When set, indicates that no asset migration
+    //                                        should be executed but only the estimated price (in the foreign
+    //                                        blockchain's native coin) to fulfill the operation should be returned
     //    }
     //    callback: [Function] - Callback function
     ApiClient.prototype.migrateAsset = function (assetId, foreignBlockchain, migration, options, callback) {
