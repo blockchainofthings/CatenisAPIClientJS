@@ -53,6 +53,22 @@ describe('Test changes to Catenis API client ver. 6.0.0.', function  () {
         });
     });
 
+    it('should list new asset export related notification events', function (done) {
+        apiClient.listNotificationEvents(function (error, data) {
+            if (error) {
+                done.fail('Error listing notification events: ' + error);
+            }
+            else {
+                // Success. Validate returned data
+                expect(typeof data === 'object').toBeTrue();
+                expect('asset-export-outcome' in data).toBeTrue('Missing \'asset-export-outcome\' notification event');
+                expect('asset-migration-outcome' in data).toBeTrue('Missing \'asset-migration-outcome\' notification event');
+
+                done();
+            }
+        });
+    });
+
     it('should retrieve asset export price estimate', function (done) {
         apiClient.exportAsset(asset.id, foreignBlockchain, asset.token, {
             estimateOnly: true
