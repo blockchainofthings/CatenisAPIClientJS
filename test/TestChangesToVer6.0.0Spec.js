@@ -53,7 +53,7 @@ describe('Test changes to Catenis API client ver. 6.0.0.', function  () {
         });
     });
 
-    it ('should retrieve asset export price estimate', function (done) {
+    it('should retrieve asset export price estimate', function (done) {
         apiClient.exportAsset(asset.id, foreignBlockchain, asset.token, {
             estimateOnly: true
         }, function (error, data) {
