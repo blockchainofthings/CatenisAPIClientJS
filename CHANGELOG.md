@@ -1,5 +1,10 @@
 # Changelog
 
+## [6.0.1] - 2021-09-04
+
+### Fixes
+- Enhance build process and fix properties of generated source map.
+
 ## [6.0.0] - 2021-09-02
 
 ### Breaking changes
