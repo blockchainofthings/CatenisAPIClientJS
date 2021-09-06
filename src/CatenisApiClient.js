@@ -1354,7 +1354,7 @@
     //      direction: [String],          - (optional) The direction of the migration. Valid options: 'outward',
     //                                       'inward'
     //      status: [String],             - (optional) A single status or a comma-separated list of statuses to include.
-    //                                       Valid options: 'pending', 'success', 'error'
+    //                                       Valid options: 'pending', 'interrupted', 'success', 'error'
     //      negateStatus: [Boolean],      - (optional, default: false) Boolean value indicating whether the specified
     //                                       statuses should be excluded instead
     //      startDate: [Date|String],     - (optional) Date and time specifying the inclusive lower bound of the time
