@@ -6,13 +6,13 @@
   "homepage": "https://github.com/blockchainofthings/CatenisAPIClientJS",
   "dependencies": {},
   "devDependencies": {
-    "bower": "^1.8.12",
+    "bower": "^1.8.14",
     "gulp": "^4.0.2",
     "gulp-jasmine-browser": "^4.1.0",
-    "jasmine-core": "^3.8.0",
+    "jasmine-core": "^3.99.1",
     "plugin-error": "^1.0.1",
-    "puppeteer": "^10.2.0",
-    "uglify-js": "^3.14.1"
+    "puppeteer": "^10.4.0",
+    "uglify-js": "^3.17.0"
   },
   "scripts": {
     "build": "./bin/build.sh",
