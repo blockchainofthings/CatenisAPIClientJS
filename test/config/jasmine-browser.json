@@ -1,0 +1,21 @@
+{
+  "srcDir": "build",
+  "srcFiles": [
+    "CatenisAPIClientJS.min.js"
+  ],
+  "specDir": "test",
+  "specFiles": [
+    "**/*[sS]pec.js"
+  ],
+  "helpers": [
+    "helpers/**/*.js"
+  ],
+  "env": {
+    "stopSpecOnExpectationFailure": true,
+    "stopOnSpecFailure": false,
+    "random": false
+  },
+  "browser": {
+    "name": "headlessChrome"
+  }
+}

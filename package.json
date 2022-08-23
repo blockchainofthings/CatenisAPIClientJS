@@ -7,17 +7,14 @@
   "dependencies": {},
   "devDependencies": {
     "bower": "^1.8.14",
-    "gulp": "^4.0.2",
-    "gulp-jasmine-browser": "^4.1.0",
-    "jasmine-core": "^3.99.1",
-    "plugin-error": "^1.0.1",
-    "puppeteer": "^10.4.0",
+    "jasmine-browser-runner": "^1.1.0",
+    "jasmine-core": "^4.3.0",
     "uglify-js": "^3.17.0"
   },
   "scripts": {
     "build": "./bin/build.sh",
-    "test": "env TEST_SPECS='TestChangesToVer{!npm_package_version}Spec.js' gulp jasmine-chrome",
-    "test-compress": "env TEST_SPECS='TestDataCompressionSpec.js' gulp jasmine-chrome"
+    "test": "node ./test/bin/RunTestSuites.js TestChangesToVer{!npm_package_version}Spec.js",
+    "test-compress": "node ./test/bin/RunTestSuites.js TestDataCompressionSpec.js"
   },
   "repository": {
     "type": "git",
