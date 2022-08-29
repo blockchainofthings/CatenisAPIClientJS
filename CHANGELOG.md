@@ -1,5 +1,20 @@
 # Changelog
 
+## [7.0.0] - 2022-08-29
+
+### Breaking changes
+- The issuance event entries returned by the *retrieveAssetIssuanceHistory* method for non-fungible assets are different
+  from the ones returned for regular (fungible) assets as per the new behavior of version 0.12 of the Catenis API. The
+  observed differences are: the `amount` property is replaced by a new `nfTokenIds` property, which lists the IDs of the
+  non-fungible tokens that have been issued; and the `holdingDevice` property is replaced by a new `holdingDevices`
+  property, which lists the Catenis virtual devices to which the issued non-fungible tokens have been assigned.
+
+### New features
+- Added support for changes introduced by version 0.12 of the Catenis API: new non-fungible assets feature, including
+  the new API methods Issue Non-Fungible Asset, Reissue Non-Fungible Asset, Retrieve Non-Fungible Asset Issuance
+  Progress, Retrieve Non-Fungible Token, Retrieve Non-Fungible Token Retrieval Progress, Transfer Non-Fungible Token,
+  Retrieve Non-Fungible Token Transfer Progress.
+
 ## [6.0.1] - 2021-09-04
 
 ### Fixes
