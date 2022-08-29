@@ -1914,4 +1914,4 @@ For further information on the Catenis API, please reference the [Catenis API Do
 
 This JavaScript library is released under the [MIT License](LICENSE). Feel free to fork, and modify!
 
-Copyright © 2017-2021, Blockchain of Things Inc.
+Copyright © 2017-2022, Blockchain of Things Inc.
