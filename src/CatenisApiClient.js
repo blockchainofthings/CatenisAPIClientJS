@@ -42,7 +42,7 @@
     //      host: [String],              - (optional, default: 'catenis.io') Host name (with optional port) of target Catenis API server
     //      environment: [String],       - (optional, default: 'prod') Environment of target Catenis API server. Valid values: 'prod', 'sandbox' (or 'beta')
     //      secure: [Boolean],           - (optional, default: true) Indicates whether a secure connection (HTTPS) should be used
-    //      version: [String],           - (optional, default: '0.11') Version of Catenis API to target
+    //      version: [String],           - (optional, default: '0.12') Version of Catenis API to target
     //      useCompression: [Boolean],   - (optional, default: true) Indicates whether request body should be compressed. Note: modern
     //                                                               web browsers will always accept compressed request responses
     //      compressThreshold: [Number], - (optional, default: 1024) Minimum size, in bytes, of request body for it to be compressed
@@ -58,7 +58,7 @@
         var _host = 'catenis.io';
         var _subdomain = '';
         var _secure = true;
-        var _version = '0.11';
+        var _version = '0.12';
 
         this.useCompression = true;
         this.compressThreshold = 1024;
@@ -1460,6 +1460,326 @@
             error: procFunc
         });
     };
+
+    // Creates a new non-fungible asset, and issues its initial non-fungible tokens
+    //
+    //  Parameters:
+    //    issuanceInfoOrContinuationToken: [Object|String] {  - An object with the required info for issuing a new asset,
+    //                                              or a string with an asset issuance a continuation token, which
+    //                                              signals a continuation call and should match the value returned by
+    //                                              the previous call
+    //      assetInfo: [Object] {  - (optional) The properties of the new non-fungible asset to create
+    //        name: [String]        - The name of the non-fungible asset
+    //        description: [String] - (optional) A description of the non-fungible asset
+    //        canReissue: [Boolean] - Indicates whether more non-fungible tokens of that non-fungible asset can be issued
+    //                                 at a later time
+    //      },
+    //      encryptNFTContents: [Boolean] - (optional, default: true) Indicates whether the contents of the non-fungible
+    //                                       tokens being issued should be encrypted before being stored
+    //      holdingDevices: [Object|Array(Object)] [{ - (optional) A single virtual device or a list of virtual devices
+    //                                                  that will hold the issued non-fungible tokens
+    //        id: [String]              - The ID of the holding device. Should be a device ID unless isProdUniqueId is set
+    //        isProdUniqueId: [Boolean] - (optional, default: false) Indicates whether the supplied ID is a product unique
+    //                                   ID
+    //      }],
+    //      async: [Boolean] - (optional, default: false) Indicates whether processing should be done asynchronously
+    //    }
+    //    nonFungibleTokens: Array(Object) [{  - (optional) List with the properties of the non-fungible tokens to be
+    //                                          issued
+    //      metadata: [Object] {  - (optional) The properties of the non-fungible token to issue
+    //        name: [String], - The name of the non-fungible token
+    //        description: [String], - (optional) A description of the non-fungible token
+    //        custom: [Object] {  - (optional) User defined, custom properties of the non-fungible token
+    //          sensitiveProps: [Object] {  - (optional) User defined, sensitive properties of the non-fungible token.
+    //                                          Sensitive properties are encrypted before being stored
+    //            <prop_name>:  - A custom, sensitive property identified by prop_name
+    //          },
+    //          <prop_name>:  - A custom property identified by prop_name
+    //        }
+    //      },
+    //      contents: [Object] {  - (optional) The contents of the non-fungible token to issue
+    //        data: [String]     - An additional chunk of data of the non-fungible token's contents
+    //        encoding: [String] - (optional, default: base64) The encoding of the contents data chunk. Valid options:
+    //                              utf8, base64, hex
+    //      }
+    //    }],
+    //    isFinal: [Boolean] - (optional, default: true) Indicates whether this is the final call of the asset issuance.
+    //                                                    There should be no more continuation calls after this is set
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.issueNonFungibleAsset = function (issuanceInfoOrContinuationToken, nonFungibleTokens, isFinal, callback) {
+        if (typeof nonFungibleTokens === 'function') {
+            callback = nonFungibleTokens;
+            nonFungibleTokens = undefined;
+            isFinal = undefined;
+        }
+        else if (typeof isFinal === 'function') {
+            callback = isFinal;
+            isFinal = undefined;
+        }
+
+        var data = {};
+
+        if (typeof issuanceInfoOrContinuationToken === 'object') {
+            Object.assign(data, issuanceInfoOrContinuationToken);
+        }
+        else if (typeof issuanceInfoOrContinuationToken === 'string') {
+            data.continuationToken = issuanceInfoOrContinuationToken;
+        }
+
+        if (nonFungibleTokens !== undefined) {
+            data.nonFungibleTokens = nonFungibleTokens;
+        }
+
+        if (isFinal !== undefined) {
+            data.isFinal = isFinal;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        postRequest.call(this, 'assets/non-fungible/issue', undefined, data, {
+            success: procFunc,
+            error: procFunc
+        })
+    }
+
+    // Issues more non-fungible tokens for a previously created non-fungible asset
+    //
+    //  Parameters:
+    //    assetId: [String] - The ID of the non-fungible asset for which more non-fungible tokens should be issued
+    //    issuanceInfoOrContinuationToken: [Object|String] {  - (optional) An object with the required info for issuing
+    //                                              more non-fungible tokens of an existing non-fungible asset, or a
+    //                                              string with an asset issuance continuation token, which signals a
+    //                                              continuation call and should match the value returned by the
+    //                                              previous call
+    //      encryptNFTContents: [Boolean] - (optional, default: true) Indicates whether the contents of the non-fungible
+    //                                       tokens being issued should be encrypted before being stored
+    //      holdingDevices [Object|Array(Object)] [{ - (optional) A single virtual device or a list of virtual devices
+    //                                                  that will hold the issued non-fungible tokens
+    //        id: [String]              - The ID of the holding device. Should be a device ID unless isProdUniqueId is set
+    //        isProdUniqueId: [Boolean] - (optional, default: false) Indicates whether the supplied ID is a product unique
+    //                                   ID
+    //      }],
+    //      async: [Boolean] - (optional, default: false) Indicates whether processing should be done asynchronously
+    //    }
+    //    nonFungibleTokens: Array(Object) [{  - (optional) List with the properties of the non-fungible tokens to be
+    //                                            issued
+    //      metadata: [Object] {  - (optional) The properties of the non-fungible token to issue
+    //        name: [String], - The name of the non-fungible token
+    //        description: [String], - (optional) A description of the non-fungible token
+    //        custom: [Object] {  - (optional) User defined, custom properties of the non-fungible token
+    //          sensitiveProps: [Object] {  - (optional) User defined, sensitive properties of the non-fungible token.
+    //                                          Sensitive properties are encrypted before being stored
+    //            <prop_name>:  - A custom, sensitive property identified by prop_name
+    //          },
+    //          <prop_name>:  - A custom property identified by prop_name
+    //        }
+    //      },
+    //      contents: [Object] {  - (optional) The contents of the non-fungible token to issue
+    //        data: [String]     - An additional chunk of data of the non-fungible token's contents
+    //        encoding: [String] - (optional, default: base64) The encoding of the contents data chunk. Valid options:
+    //                              utf8, base64, hex
+    //      }
+    //    }],
+    //    isFinal: [Boolean] - (optional, default: true) Indicates whether this is the final call of the asset issuance.
+    //                          There should be no more continuation calls after this is set
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.reissueNonFungibleAsset = function (assetId, issuanceInfoOrContinuationToken, nonFungibleTokens, isFinal, callback) {
+        if (Array.isArray(issuanceInfoOrContinuationToken)) {
+            callback = isFinal;
+            isFinal = nonFungibleTokens;
+            nonFungibleTokens = issuanceInfoOrContinuationToken;
+            issuanceInfoOrContinuationToken = undefined;
+        }
+
+        if (typeof nonFungibleTokens === 'function') {
+            callback = nonFungibleTokens;
+            nonFungibleTokens = undefined;
+            isFinal = undefined;
+        }
+        else if (typeof isFinal === 'function') {
+            callback = isFinal;
+            isFinal = undefined;
+        }
+
+        var params = {
+            url: [
+                assetId
+            ]
+        };
+
+        var data = {};
+
+        if (typeof issuanceInfoOrContinuationToken === 'object') {
+            Object.assign(data, issuanceInfoOrContinuationToken);
+        }
+        else if (typeof issuanceInfoOrContinuationToken === 'string') {
+            data.continuationToken = issuanceInfoOrContinuationToken;
+        }
+
+        if (nonFungibleTokens !== undefined) {
+            data.nonFungibleTokens = nonFungibleTokens;
+        }
+
+        if (isFinal !== undefined) {
+            data.isFinal = isFinal;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        postRequest.call(this, 'assets/non-fungible/:assetId/issue', params, data, {
+            success: procFunc,
+            error: procFunc
+        })
+    }
+
+    // Retrieves the current progress of an asynchronous non-fungible asset issuance
+    //
+    //  Parameters:
+    //    issuanceId: [String] - The ID of the non-fungible asset issuance the processing progress of which should be
+    //                            retrieved
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.retrieveNonFungibleAssetIssuanceProgress = function (issuanceId, callback) {
+        var params = {
+            url: [
+                issuanceId
+            ]
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/non-fungible/issuance/:issuanceId', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    }
+
+    // Retrieves the data associated with a non-fungible token
+    //
+    //  Parameters:
+    //    tokenId: [String] - The ID of the non-fungible token the data of which should be retrieved
+    //    options: [Object] {  - (optional)
+    //      retrieveContents: [Boolean] - (optional, default: true) Indicates whether the contents of the non-fungible
+    //                                     token should be retrieved or not
+    //      contentsOnly: [Boolean] - (optional, default: false) Indicates whether only the contents of the non-fungible
+    //                                 token should be retrieved
+    //      contentsEncoding: [String] - (optional, default: 'base64') The encoding with which the retrieved chunk of
+    //                                    non-fungible token contents data will be encoded. Valid values: 'utf8',
+    //                                    'base64', 'hex'
+    //      dataChunkSize: [Number] - (optional) Numeric value representing the size, in bytes, of the largest chunk of
+    //                                 non-fungible token contents data that should be returned
+    //      async: [Boolean] - (optional, default: false) Indicates whether the processing should be done asynchronously
+    //      continuationToken: [String] - (optional) A non-fungible token retrieval continuation token, which signals a
+    //                                     continuation call, and should match the value returned by the previous call
+    //    }
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.retrieveNonFungibleToken = function (tokenId, options, callback) {
+        if (typeof options === 'function') {
+            callback = options;
+            options = undefined;
+        }
+
+        var params = {
+            url: [
+                tokenId
+            ]
+        };
+
+        if (options) {
+            params.query = filterDefinedProperties(options);
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/non-fungible/tokens/:tokenId', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    }
+
+    // Retrieves the current progress of an asynchronous non-fungible token retrieval
+    //
+    //  Parameters:
+    //    tokenId: [String] - The ID of the non-fungible token whose data is being retrieved
+    //    retrievalId: [String] - The ID of the non-fungible token retrieval the processing progress of which should be
+    //                             retrieved
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.retrieveNonFungibleTokenRetrievalProgress = function (tokenId, retrievalId, callback) {
+        var params = {
+            url: [
+                tokenId,
+                retrievalId
+            ]
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/non-fungible/tokens/:tokenId/retrieval/:retrievalId', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    }
+
+    // Transfers a non-fungible token to a virtual device
+    //
+    //  Parameters:
+    //    tokenId: [String] - The ID of the non-fungible token to transfer
+    //    receivingDevice: [Object] {  - Virtual device to which the non-fungible token is to be transferred
+    //      id: [String]              - The ID of the receiving device. Should be a device ID unless isProdUniqueId is set
+    //      isProdUniqueId: [Boolean] - (optional, default: false) Indicates whether the supplied ID is a product unique
+    //                                   ID
+    //    }
+    //    asyncProc: [Boolean] - (optional, default: false) Indicates whether processing should be done asynchronously
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.transferNonFungibleToken = function (tokenId, receivingDevice, asyncProc, callback) {
+        if (typeof asyncProc === 'function') {
+            callback = asyncProc;
+            asyncProc = undefined;
+        }
+
+        var params = {
+            url: [
+                tokenId
+            ]
+        };
+
+        var data = {
+            receivingDevice: receivingDevice
+        };
+
+        if (asyncProc !== undefined) {
+            data.async = asyncProc;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        postRequest.call(this, 'assets/non-fungible/tokens/:tokenId/transfer', params, data, {
+            success: procFunc,
+            error: procFunc
+        })
+    }
+
+    // Retrieves the current progress of an asynchronous non-fungible token retrieval
+    //
+    //  Parameters:
+    //    tokenId: [String] - The ID of the non-fungible token that is being transferred
+    //    transferId: [String] - The ID of the non-fungible token transfer the processing progress of which should be
+    //                            retrieved
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.retrieveNonFungibleTokenTransferProgress = function (tokenId, transferId, callback) {
+        var params = {
+            url: [
+                tokenId,
+                transferId
+            ]
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/non-fungible/tokens/:tokenId/transfer/:transferId', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    }
 
     // Create WebSocket Notification Channel
     //

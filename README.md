@@ -2,7 +2,7 @@
 
 This JavaScript library is used to make it easier to access the Catenis API services from a web browser.
 
-This current release (6.0.1) targets version 0.11 of the Catenis API.
+This current release (6.0.1) targets version 0.12 of the Catenis API.
 
 ## Development
 
@@ -57,7 +57,7 @@ The following options can be used when instantiating the client:
 - **host** \[String\] - (optional, default: <b>*'catenis.io'*</b>) Host name (with optional port) of target Catenis API server.
 - **environment** \[String\] - (optional, default: <b>*'prod'*</b>) Environment of target Catenis API server. Valid values: *'prod'*, *'sandbox'*.
 - **secure** \[Boolean\] - (optional, default: ***true***) Indicates whether a secure connection (HTTPS) should be used.
-- **version** \[String\] - (optional, default: <b>*'0.11'*</b>) Version of Catenis API to target.
+- **version** \[String\] - (optional, default: <b>*'0.12'*</b>) Version of Catenis API to target.
 - **useCompression** \[Boolean\] - (optional, default: ***true***) Indicates whether request body should be compressed.
 - **compressThreshold** \[Number\] - (optional, default: ***1024***) Minimum size, in bytes, of request body for it to be compressed.
 
@@ -602,6 +602,626 @@ ctnApiClient.transferAsset(assetId, 50.75, {
 });
 ```
 
+### Creating a new non-fungible asset and issuing its (initial) non-fungible tokens
+
+#### Passing non-fungible token contents in a single call
+
+```JavaScript
+ctnApiClient.issueNonFungibleAsset({
+        assetInfo: {
+            name: 'Catenis NFA 1',
+            description: 'Non-fungible asset #1 for testing',
+            canReissue: true
+        }
+    }, [{
+        metadata: {
+            name: 'NFA1 NFT 1',
+            description: 'First token of Catenis non-fungible asset #1'
+        },
+        contents: {
+            data: 'Contents of first token of Catenis non-fungible asset #1',
+            encoding: 'utf8'
+        }
+    }, {
+        metadata: {
+            name: 'NFA1 NFT 2',
+            description: 'Second token of Catenis non-fungible asset #1'
+        },
+        contents: {
+            data: 'Contents of second token of Catenis non-fungible asset #1',
+            encoding: 'utf8'
+        }
+    }],
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('ID of newly created non-fungible asset:', data.assetId);
+            console.log('IDs of newly issued non-fungible tokens:', data.nfTokenIds);
+        }
+});
+```
+
+#### Passing non-fungible token contents in multiple calls
+
+```JavaScript
+function issueNFAsset(issuanceInfoOrContinuationToken, nftMetadata, nftContents, callIdx, callback) {
+    var isContinuationCall = typeof issuanceInfoOrContinuationToken === 'string';
+    
+    var nfTokens;
+    
+    if (!isContinuationCall) {
+        nfTokens = nftMetadata.map(function (metadata, tokenIdx) {
+            var nfToken = {
+                metdata: metadata
+            };
+            
+            var contents = nftContents[tokenIdx];
+            
+            if (contents) {
+                nfToken.contents = contents[callIdx];   
+            }
+            
+            return nfToken;
+        });
+    }
+    else {  // Continuation call
+        nfTokens = nftContents.map(function (contents, tokenIdx) {
+            return contents && callIdx < contents.length
+                ? {contents: contents[callIdx]}
+                : null;
+        });
+        
+        if (nfTokens.every(function (nfToken) {return nfToken === null})) {
+            nfTokens = undefined;
+        }
+    }
+    
+    ctnApiClient.issueNonFungibleAsset(
+        issuanceInfoOrContinuationToken,
+        nfTokens,
+        nfTokens === undefined,
+        function (err, data) {
+            if (err) {
+                callback(err);
+            }
+            else {
+                if (data.continuationToken) {
+                    // Continue passing non-fungible tokens' contents
+                    issueNFAsset(data.continuationToken, undefined, nftContents, ++callIdx, callback);
+                }
+                else {
+                    // Return issuance result
+                    callback(null, data);
+                }
+            }
+    });
+}
+
+issueNFAsset({
+        assetInfo: {
+            name: 'Catenis NFA 1',
+            description: 'Non-fungible asset #1 for testing',
+            canReissue: true
+        }
+    }, [{
+        name: 'NFA1 NFT 1',
+        description: 'First token of Catenis non-fungible asset #1'
+        }, {
+        name: 'NFA1 NFT 2',
+        description: 'Second token of Catenis non-fungible asset #1'
+    }], [
+        [{
+            data: 'Contents of first token of Catenis non-fungible asset #1',
+            encoding: 'utf8'
+        }],
+        [{
+            data: 'Here is the contents of the second token of Catenis non-fungible asset #1 (part #1)',
+            encoding: 'utf8'
+        }, {
+            data: '; and here is the last part of the contents of the second token of Catenis non-fungible asset #1.',
+            encoding: 'utf8'
+        }]
+    ], 0,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('ID of newly created non-fungible asset:', data.assetId);
+            console.log('IDs of newly issued non-fungible tokens:', data.nfTokenIds);
+        }
+});
+```
+
+#### Doing asynchronous issuance
+
+```JavaScript
+function getAsyncProgress (assetIssaunceId) {
+    ctnApiClient.retrieveNonFungibleAssetIssuanceProgress(
+        assetIssaunceId,
+        function (err, data) {
+            if (err) {
+                // Process error
+            }
+            else {
+                // Process returned data
+                console.log('Percent processed:', data.progress.percentProcessed);
+                    
+                if (data.progress.done) {
+                    if (data.progress.success) {
+                        // Display result
+                        console.log('ID of newly created non-fungible asset:', data.result.assetId);
+                        console.log('IDs of newly issued non-fungible tokens:', data.result.nfTokenIds);
+                    }
+                    else {
+                        // Process error
+                        console.error('Asynchronous processing error: [', data.progress.error.code, ' ] -', data.progress.error.message);
+                    }
+                }
+                else {
+                    // Asynchronous processing not done yet. Continue pooling
+                    setTimeout(getAsyncProgress, 100, assetIssaunceId);
+                }
+            }
+        }
+    );
+}
+
+ctnApiClient.issueNonFungibleAsset({
+        assetInfo: {
+            name: 'Catenis NFA 1',
+            description: 'Non-fungible asset #1 for testing',
+            canReissue: true
+        },
+        async: true
+    }, [{
+        metadata: {
+            name: 'NFA1 NFT 1',
+            description: 'First token of Catenis non-fungible asset #1'
+         },
+         contents: {
+            data: 'Contents of first token of Catenis non-fungible asset #1',
+            encoding: 'utf8'
+         }
+    }, {
+        metadata: {
+            name: 'NFA1 NFT 2',
+            description: 'Second token of Catenis non-fungible asset #1'
+        },
+        contents: {
+            data: 'Contents of second token of Catenis non-fungible asset #1',
+            encoding: 'utf8'
+        }
+    }],
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Start pooling for asynchronous processing progress
+            setTimeout(getAsyncProgress, 100, data.assetIssuanceId);
+        }
+});
+```
+
+### Issuing more non-fungible tokens for a previously created non-fungible asset
+
+#### Passing non-fungible token contents in a single call
+
+```JavaScript
+ctnApiClient.reissueNonFungibleAsset(assetId, [{
+        metadata: {
+            name: 'NFA1 NFT 3',
+            description: 'Third token of Catenis non-fungible asset #1'
+        },
+        contents: {
+            data: 'Contents of third token of Catenis non-fungible asset #1',
+            encoding: 'utf8'
+        }
+    }, {
+        metadata: {
+            name: 'NFA1 NFT 4',
+            description: 'Forth token of Catenis non-fungible asset #1'
+        },
+        contents: {
+            data: 'Contents of forth token of Catenis non-fungible asset #1',
+            encoding: 'utf8'
+        }
+    }],
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('IDs of newly issued non-fungible tokens:', data.nfTokenIds);
+        }
+});
+```
+
+#### Passing non-fungible token contents in multiple calls
+
+```JavaScript
+function reissueNFAsset(assetId, issuanceInfoOrContinuationToken, nftMetadata, nftContents, callIdx, callback) {
+    var isContinuationCall = typeof issuanceInfoOrContinuationToken === 'string';
+    
+    var nfTokens;
+    
+    if (!isContinuationCall) {
+        nfTokens = nftMetadata.map(function (metadata, tokenIdx) {
+            var nfToken = {
+                metdata: metadata
+            };
+            
+            var contents = nftContents[tokenIdx];
+            
+            if (contents) {
+                nfToken.contents = contents[callIdx];   
+            }
+            
+            return nfToken;
+        });
+    }
+    else {  // Continuation call
+        nfTokens = nftContents.map(function (contents, tokenIdx) {
+            return contents && callIdx < contents.length
+                ? {contents: contents[callIdx]}
+                : null;
+        });
+        
+        if (nfTokens.every(function (nfToken) {return nfToken === null})) {
+            nfTokens = undefined;
+        }
+    }
+    
+    ctnApiClient.reissueNonFungibleAsset(
+        assetId,
+        issuanceInfoOrContinuationToken,
+        nfTokens,
+        nfTokens === undefined,
+        function (err, data) {
+            if (err) {
+                callback(err);
+            }
+            else {
+                if (data.continuationToken) {
+                    // Continue passing non-fungible tokens' contents
+                    reissueNFAsset(assetId, data.continuationToken, undefined, nftContents, ++callIdx, callback);
+                }
+                else {
+                    // Return reissuance result
+                    callback(null, data);
+                }
+            }
+    });
+}
+
+reissueNFAsset(assetId, undefined, [{
+        name: 'NFA1 NFT 3',
+        description: 'Third token of Catenis non-fungible asset #1'
+    }, {
+        name: 'NFA1 NFT 4',
+        description: 'Forth token of Catenis non-fungible asset #1'
+    }], [
+        [{
+            data: 'Contents of third token of Catenis non-fungible asset #1',
+            encoding: 'utf8'
+        }],
+        [{
+            data: 'Here is the contents of the forth token of Catenis non-fungible asset #1 (part #1)',
+            encoding: 'utf8'
+        }, {
+            data: '; and here is the last part of the contents of the forth token of Catenis non-fungible asset #1.',
+            encoding: 'utf8'
+        }]
+    ], 0,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('IDs of newly issued non-fungible tokens:', data.nfTokenIds);
+        }
+});
+```
+
+#### Doing issuance asynchronously
+
+```JavaScript
+function getAsyncProgress (assetIssaunceId) {
+    ctnApiClient.retrieveNonFungibleAssetIssuanceProgress(
+        assetIssaunceId,
+        function (err, data) {
+            if (err) {
+                // Process error
+            }
+            else {
+                // Process returned data
+                console.log('Percent processed:', data.progress.percentProcessed);
+                    
+                if (data.progress.done) {
+                    if (data.progress.success) {
+                        // Display result
+                        console.log('IDs of newly issued non-fungible tokens:', data.result.nfTokenIds);
+                    }
+                    else {
+                        // Process error
+                        console.error('Asynchronous processing error: [', data.progress.error.code, ' ] -', data.progress.error.message);
+                    }
+                }
+                else {
+                    // Asynchronous processing not done yet. Continue pooling
+                    setTimeout(getAsyncProgress, 100, assetIssaunceId);
+                }
+            }
+        }
+    );
+}
+
+ctnApiClient.reissueNonFungibleAsset(assetId, {
+        async: true
+    }, [{
+        metadata: {
+            name: 'NFA1 NFT 3',
+            description: 'Third token of Catenis non-fungible asset #1'
+         },
+         contents: {
+            data: 'Contents of third token of Catenis non-fungible asset #1',
+            encoding: 'utf8'
+         }
+    }, {
+        metadata: {
+            name: 'NFA1 NFT 4',
+            description: 'Forth token of Catenis non-fungible asset #1'
+        },
+        contents: {
+            data: 'Contents of forth token of Catenis non-fungible asset #1',
+            encoding: 'utf8'
+        }
+    }],
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Start pooling for asynchronous processing progress
+            setTimeout(getAsyncProgress, 100, data.assetIssuanceId);
+        }
+});
+```
+
+### Retrieving the data associated with a non-fungible token
+
+#### Doing retrieval synchronously
+
+```JavaScript
+function retrieveNFToken(tokenId, optionsOrContinuationToken, nfTokenData, callback) {
+    if (typeof optionsOrContinuationToken === 'string') {
+        optionsOrContinuationToken = {continuationToken: optionsOrContinuationToken};
+    }
+
+    ctnApiClient.retrieveNonFungibleToken(
+        tokenId,
+        optionsOrContinuationToken,
+        function (err, data) {
+            if (err) {
+                callback(err);
+            }
+            else {
+                if (!nfTokenData) {
+                    // Get token data
+                    nfTokenData = {
+                        assetId: data.nonFungibleToken.assetId,
+                        metadata: data.nonFungibleToken.metadata,
+                        contents: [data.nonFungibleToken.contents.data]
+                    };
+                }
+                else {
+                    // Add next contents part to token data
+                    nfTokenData.contents.push(data.nonFungibleToken.contents.data);
+                }
+                
+                if (data.continuationToken) {
+                    // Continue retrieving token's contents
+                    retrieveNFToken(tokenId, data.continuationToken, nfTokenData, callback);
+                }
+                else {
+                    // Return token data
+                    callback(null, nfTokenData);
+                }
+            }
+        }
+    );
+}
+
+retrieveNFToken(tokenId, {}, undefined,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Non-fungible token data:', data);
+        }
+});
+```
+
+#### Doing retrieval asynchronously
+
+```JavaScript
+function retrieveNFToken(tokenId, optionsOrcontinuationToken, nfTokenData, callback) {
+    if (typeof optionsOrcontinuationToken === 'string') {
+        optionsOrcontinuationToken = {continuationToken: optionsOrcontinuationToken};
+    }
+
+    ctnApiClient.retrieveNonFungibleToken(
+        tokenId,
+        optionsOrcontinuationToken,
+        function (err, data) {
+            if (err) {
+                callback(err);
+            }
+            else {
+                if (!nfTokenData) {
+                    // Get token data
+                    nfTokenData = {
+                        assetId: data.nonFungibleToken.assetId,
+                        metadata: data.nonFungibleToken.metadata,
+                        contents: [data.nonFungibleToken.contents.data]
+                    };
+                }
+                else {
+                    // Add next contents part to token data
+                    nfTokenData.contents.push(data.nonFungibleToken.contents.data);
+                }
+                
+                if (data.continuationToken) {
+                    // Continue retrieving token's contents
+                    retrieveNFToken(tokenId, data.continuationToken, nfTokenData, callback);
+                }
+                else {
+                    // Return token data
+                    callback(null, nfTokenData);
+                }
+            }
+        }
+    );
+}
+
+function getAsyncProgress (tokenId, tokenRetrievalId) {
+    ctnApiClient.retrieveNonFungibleTokenRetrievalProgress(
+        tokenId,
+        tokenRetrievalId,
+        function (err, data) {
+            if (err) {
+                // Process error
+            }
+            else {
+                // Process returned data
+                console.log('Bytes already retrieved:', data.progress.bytesRetrieved);
+
+                if (data.progress.done) {
+                    if (data.progress.success) {
+                        // Finish retrieving the non-fungible token data
+                        retrieveNFToken(tokenId, data.continuationToken, undefined,
+                            function (err, data) {
+                                if (err) {
+                                    // Process error
+                                }
+                                else {
+                                    // Display result
+                                    console.log('Non-fungible token data:', data);
+                                }
+                            }
+                        );
+                    }
+                    else {
+                        // Process error
+                        console.error('Asynchronous processing error: [', data.progress.error.code, ' ] -', data.progress.error.message);
+                    }
+                }
+                else {
+                    // Asynchronous processing not done yet. Continue pooling
+                    setTimeout(getAsyncProgress, 100, tokenId, tokenRetrievalId);
+                }
+            }
+        }
+    );
+}
+
+ctnApiClient.retrieveNonFungibleToken(
+    tokenId, {
+        async: true
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Start pooling for asynchronous processing progress
+            setTimeout(getAsyncProgress, 100, tokenId, data.tokenRetrievalId);
+        }
+});
+```
+
+### Transferring a non-fungible token to another device
+
+#### Doing transfer synchronously
+
+```JavaScript
+ctnApiClient.transferNonFungibleToken(
+    tokenId, {
+        id: otherDeviceId,
+        isProdUniqueId: false
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Non-fungible token successfully transferred');
+        }
+    }
+);
+```
+
+#### Doing transfer asynchronously
+
+```JavaScript
+function getAsyncProgress (tokenId, tokenTransferId) {
+    ctnApiClient.retrieveNonFungibleTokenTransferProgress(
+        tokenId,
+        tokenTransferId,
+        function (err, data) {
+            if (err) {
+                // Process error
+            }
+            else {
+                // Process returned data
+                console.log('Current data manipulation:', data.progress.dataManipulation);
+
+                if (data.progress.done) {
+                    if (data.progress.success) {
+                        // Display result
+                        console.log('Non-fungible token successfuly transferred');
+                    }
+                    else {
+                        // Process error
+                        console.error('Asynchronous processing error: [', data.progress.error.code, ' ] -', data.progress.error.message);
+                    }
+                }
+                else {
+                    // Asynchronous processing not done yet. Continue pooling
+                    setTimeout(getAsyncProgress, 100, tokenId, tokenTransferId);
+                }
+            }
+        }
+    );
+}
+
+ctnApiClient.transferNonFungibleToken(
+    tokenId, {
+        id: otherDeviceId,
+        isProdUniqueId: false
+    },
+    true,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Start pooling for asynchronous processing progress
+            setTimeout(getAsyncProgress, 100, tokenId, data.tokenTransferId);
+        }
+});
+```
+
 ### Retrieving information about a given asset
 
 ```JavaScript
@@ -692,8 +1312,21 @@ ctnApiClient.retrieveAssetIssuanceHistory(assetId, '20170101T000000Z', null, 200
             // Process returned data
             data.issuanceEvents.forEach(function (issuanceEvent, idx) {
                 console.log('Issuance event #', idx + 1, ':');
-                console.log('  - issued amount:', issuanceEvent.amount);
-                console.log('  - device to which issued amount had been assigned:', issuanceEvent.holdingDevice);
+                
+                if (!issuanceEvent.nfTokenIds) {
+                    console.log('  - issued amount:', issuanceEvent.amount);
+                }
+                else {
+                    console.log('  - IDs of issued non-fungible tokens:', issuanceEvent.nfTokenIds);
+                }
+                
+                if (!issuanceEvent.holdingDevices) {
+                    console.log('  - device to which issued amount has been assigned:', issuanceEvent.holdingDevice);
+                }
+                else {
+                    console.log('  - devices to which issued non-fungible tokens have been assigned:', issuanceEvent.holdingDevice);
+                }
+                
                 console.log('  - date of issuance:', issuanceEvent.date);
             });
 
