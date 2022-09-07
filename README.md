@@ -737,7 +737,7 @@ issueNFAsset({
 });
 ```
 
-#### Doing asynchronous issuance
+#### Doing issuance asynchronously
 
 ```JavaScript
 function getAsyncProgress (assetIssaunceId) {
