@@ -1324,7 +1324,7 @@ ctnApiClient.retrieveAssetIssuanceHistory(assetId, '20170101T000000Z', null, 200
                     console.log('  - device to which issued amount has been assigned:', issuanceEvent.holdingDevice);
                 }
                 else {
-                    console.log('  - devices to which issued non-fungible tokens have been assigned:', issuanceEvent.holdingDevice);
+                    console.log('  - devices to which issued non-fungible tokens have been assigned:', issuanceEvent.holdingDevices);
                 }
                 
                 console.log('  - date of issuance:', issuanceEvent.date);
