@@ -1501,9 +1501,6 @@ describe('Test changes to Catenis API client ver. 7.0.0.', function  () {
                 }
             }
 
-            let transferredNFTokenId;
-            let notifyData;
-
             // Create WebSocket notification channel to be notified when non-fungible token is received
             const wsNotifyChannel = apiClient2.createWsNotifyChannel('nf-token-received');
 
