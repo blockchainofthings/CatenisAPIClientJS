@@ -709,7 +709,7 @@ issueNFAsset({
     }, [{
         name: 'NFA1 NFT 1',
         description: 'First token of Catenis non-fungible asset #1'
-        }, {
+    }, {
         name: 'NFA1 NFT 2',
         description: 'Second token of Catenis non-fungible asset #1'
     }], [
@@ -782,8 +782,8 @@ ctnApiClient.issueNonFungibleAsset({
         metadata: {
             name: 'NFA1 NFT 1',
             description: 'First token of Catenis non-fungible asset #1'
-         },
-         contents: {
+        },
+        contents: {
             data: 'Contents of first token of Catenis non-fungible asset #1',
             encoding: 'utf8'
          }
