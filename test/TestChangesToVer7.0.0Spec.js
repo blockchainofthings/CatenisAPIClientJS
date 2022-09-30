@@ -353,56 +353,60 @@ describe('Test changes to Catenis API client ver. 7.0.0.', function  () {
                 }
             });
 
+            wsNotifyChannel.addListener('open', function() {
+                // WebSocket notification channel is open.
+                //  Issue non-fungible asset
+                apiClient.issueNonFungibleAsset({
+                    assetInfo: {
+                        name: 'TSTNFA#' + assetNumber,
+                        description: 'Test non-fungible asset #' + assetNumber,
+                        canReissue: true
+                    },
+                    holdingDevices: device2
+                }, [
+                    {
+                        metadata: {
+                            name: 'TSTNFA#' + assetNumber + '_NFT#1',
+                            description: 'Test non-fungible token #1 of test non-fungible asset #' + assetNumber
+                        },
+                        contents: {
+                            data: 'Contents for token #1 of asset #' + assetNumber,
+                            encoding: 'utf8'
+                        }
+                    }
+                ], function (error, data) {
+                    if (error) {
+                        endTest('Error issuing non-fungible asset: ' + error);
+                    }
+                    else {
+                        // Save issued non-fungible token IDs
+                        issuedNFTokenIds = data.nfTokenIds;
+
+                        if (notifyData) {
+                            // Notification data not yet validated. Validate it now
+                            expect(typeof notifyData === 'object' && notifyData !== null
+                                && Array.isArray(notifyData.nfTokenIds)
+                                && typeof notifyData.issuer === 'object'
+                                && typeof notifyData.from === 'object'
+                            ).toBeTrue();
+                            expect(notifyData.nfTokenIds.length).toEqual(issuedNFTokenIds.length);
+                            notifyData.nfTokenIds.forEach((nfTokenId, idx) => expect(nfTokenId).toEqual(issuedNFTokenIds[idx]));
+                            expect(notifyData.issuer.deviceId).toEqual(device1.id);
+                            expect(notifyData.from.deviceId).toEqual(device1.id);
+
+                            endTest();
+                        }
+                    }
+                });
+            });
+
             // Open notification channel
             wsNotifyChannel.open(function (error) {
                 if (error) {
                     endTest('Error opening WebSocket notification channel. Returned error: ' + error);
                 }
                 else {
-                    // WebSocket notification channel is open.
-                    //  Issue non-fungible asset
-                    apiClient.issueNonFungibleAsset({
-                        assetInfo: {
-                            name: 'TSTNFA#' + assetNumber,
-                            description: 'Test non-fungible asset #' + assetNumber,
-                            canReissue: true
-                        },
-                        holdingDevices: device2
-                    }, [
-                        {
-                            metadata: {
-                                name: 'TSTNFA#' + assetNumber + '_NFT#1',
-                                description: 'Test non-fungible token #1 of test non-fungible asset #' + assetNumber
-                            },
-                            contents: {
-                                data: 'Contents for token #1 of asset #' + assetNumber,
-                                encoding: 'utf8'
-                            }
-                        }
-                    ], function (error, data) {
-                        if (error) {
-                            endTest('Error issuing non-fungible asset: ' + error);
-                        }
-                        else {
-                            // Save issued non-fungible token IDs
-                            issuedNFTokenIds = data.nfTokenIds;
-                            
-                            if (notifyData) {
-                                // Notification data not yet validated. Validate it now
-                                expect(typeof notifyData === 'object' && notifyData !== null
-                                    && Array.isArray(notifyData.nfTokenIds)
-                                    && typeof notifyData.issuer === 'object'
-                                    && typeof notifyData.from === 'object'
-                                ).toBeTrue();
-                                expect(notifyData.nfTokenIds.length).toEqual(issuedNFTokenIds.length);
-                                notifyData.nfTokenIds.forEach((nfTokenId, idx) => expect(nfTokenId).toEqual(issuedNFTokenIds[idx]));
-                                expect(notifyData.issuer.deviceId).toEqual(device1.id);
-                                expect(notifyData.from.deviceId).toEqual(device1.id);
-
-                                endTest();
-                            }
-                        }
-                    });
+                    // WebSocket client successfully connected. Wait for open event
                 }
             });
         });
@@ -460,45 +464,49 @@ describe('Test changes to Catenis API client ver. 7.0.0.', function  () {
                 endTest();
             });
 
+            wsNotifyChannel.addListener('open', function() {
+                // WebSocket notification channel is open.
+                //  Issue non-fungible asset
+                apiClient.issueNonFungibleAsset({
+                    assetInfo: {
+                        name: 'TSTNFA#' + assetNumber,
+                        description: 'Test non-fungible asset #' + assetNumber,
+                        canReissue: true
+                    },
+                    async: true
+                }, [
+                    {
+                        metadata: {
+                            name: 'TSTNFA#' + assetNumber + '_NFT#1',
+                            description: 'Test non-fungible token #1 of test non-fungible asset #' + assetNumber
+                        },
+                        contents: {
+                            data: 'Contents for token #1 of asset #' + assetNumber,
+                            encoding: 'utf8'
+                        }
+                    }
+                ], function (error, data) {
+                    if (error) {
+                        endTest('Error asynchronously issuing non-fungible asset: ' + error);
+                    }
+                    else {
+                        expect(typeof data === 'object' && data !== null
+                            && typeof data.assetIssuanceId === 'string'
+                        ).toBeTrue();
+
+                        // Save asset issuance ID
+                        sharedData.assetIssuanceId = assetIssuanceId = data.assetIssuanceId;
+                    }
+                });
+            });
+
             // Open notification channel
             wsNotifyChannel.open(function (error) {
                 if (error) {
                     endTest('Error opening WebSocket notification channel. Returned error: ' + error);
                 }
                 else {
-                    // WebSocket notification channel is open.
-                    //  Issue non-fungible asset
-                    apiClient.issueNonFungibleAsset({
-                        assetInfo: {
-                            name: 'TSTNFA#' + assetNumber,
-                            description: 'Test non-fungible asset #' + assetNumber,
-                            canReissue: true
-                        },
-                        async: true
-                    }, [
-                        {
-                            metadata: {
-                                name: 'TSTNFA#' + assetNumber + '_NFT#1',
-                                description: 'Test non-fungible token #1 of test non-fungible asset #' + assetNumber
-                            },
-                            contents: {
-                                data: 'Contents for token #1 of asset #' + assetNumber,
-                                encoding: 'utf8'
-                            }
-                        }
-                    ], function (error, data) {
-                        if (error) {
-                            endTest('Error asynchronously issuing non-fungible asset: ' + error);
-                        }
-                        else {
-                            expect(typeof data === 'object' && data !== null
-                                && typeof data.assetIssuanceId === 'string'
-                            ).toBeTrue();
-
-                            // Save asset issuance ID
-                            sharedData.assetIssuanceId = assetIssuanceId = data.assetIssuanceId;
-                        }
-                    });
+                    // WebSocket client successfully connected. Wait for open event
                 }
             });
         });
@@ -853,51 +861,55 @@ describe('Test changes to Catenis API client ver. 7.0.0.', function  () {
                 }
             });
 
+            wsNotifyChannel.addListener('open', function() {
+                // WebSocket notification channel is open.
+                //  Reissue non-fungible asset
+                apiClient.reissueNonFungibleAsset(assetId, {
+                    holdingDevices: device2
+                }, [
+                    {
+                        metadata: {
+                            name: 'TSTNFA#' + assetNumber + '_NFT#10',
+                            description: 'Test non-fungible token #10 of test non-fungible asset #' + assetNumber
+                        },
+                        contents: {
+                            data: 'Contents for token #10 of asset #' + assetNumber,
+                            encoding: 'utf8'
+                        }
+                    }
+                ], function (error, data) {
+                    if (error) {
+                        endTest('Error reissuing non-fungible asset: ' + error);
+                    }
+                    else {
+                        // Save issued non-fungible token IDs
+                        issuedNFTokenIds = data.nfTokenIds;
+
+                        if (notifyData) {
+                            // Notification data not yet validated. Validate it now
+                            expect(typeof notifyData === 'object' && notifyData !== null
+                                && Array.isArray(notifyData.nfTokenIds)
+                                && typeof notifyData.issuer === 'object'
+                                && typeof notifyData.from === 'object'
+                            ).toBeTrue();
+                            expect(notifyData.nfTokenIds.length).toEqual(issuedNFTokenIds.length);
+                            notifyData.nfTokenIds.forEach((nfTokenId, idx) => expect(nfTokenId).toEqual(issuedNFTokenIds[idx]));
+                            expect(notifyData.issuer.deviceId).toEqual(device1.id);
+                            expect(notifyData.from.deviceId).toEqual(device1.id);
+
+                            endTest();
+                        }
+                    }
+                });
+            });
+
             // Open notification channel
             wsNotifyChannel.open(function (error) {
                 if (error) {
                     endTest('Error opening WebSocket notification channel. Returned error: ' + error);
                 }
                 else {
-                    // WebSocket notification channel is open.
-                    //  Reissue non-fungible asset
-                    apiClient.reissueNonFungibleAsset(assetId, {
-                        holdingDevices: device2
-                    }, [
-                        {
-                            metadata: {
-                                name: 'TSTNFA#' + assetNumber + '_NFT#7',
-                                description: 'Test non-fungible token #7 of test non-fungible asset #' + assetNumber
-                            },
-                            contents: {
-                                data: 'Contents for token #7 of asset #' + assetNumber,
-                                encoding: 'utf8'
-                            }
-                        }
-                    ], function (error, data) {
-                        if (error) {
-                            endTest('Error reissuing non-fungible asset: ' + error);
-                        }
-                        else {
-                            // Save issued non-fungible token IDs
-                            issuedNFTokenIds = data.nfTokenIds;
-
-                            if (notifyData) {
-                                // Notification data not yet validated. Validate it now
-                                expect(typeof notifyData === 'object' && notifyData !== null
-                                    && Array.isArray(notifyData.nfTokenIds)
-                                    && typeof notifyData.issuer === 'object'
-                                    && typeof notifyData.from === 'object'
-                                ).toBeTrue();
-                                expect(notifyData.nfTokenIds.length).toEqual(issuedNFTokenIds.length);
-                                notifyData.nfTokenIds.forEach((nfTokenId, idx) => expect(nfTokenId).toEqual(issuedNFTokenIds[idx]));
-                                expect(notifyData.issuer.deviceId).toEqual(device1.id);
-                                expect(notifyData.from.deviceId).toEqual(device1.id);
-
-                                endTest();
-                            }
-                        }
-                    });
+                    // WebSocket client successfully connected. Wait for open event
                 }
             });
         });
@@ -955,44 +967,48 @@ describe('Test changes to Catenis API client ver. 7.0.0.', function  () {
                 endTest();
             });
 
+            wsNotifyChannel.addListener('open', function() {
+                // WebSocket notification channel is open.
+                //  Reissue non-fungible asset
+                apiClient.reissueNonFungibleAsset(assetId, {
+                    async: true
+                }, [
+                    {
+                        metadata: {
+                            name: 'TSTNFA#' + assetNumber + '_NFT#11',
+                            description: 'Test non-fungible token #11 of test non-fungible asset #' + assetNumber
+                        },
+                        contents: {
+                            data: 'Contents for token #11 of asset #' + assetNumber,
+                            encoding: 'utf8'
+                        }
+                    }
+                ], function (error, data) {
+                    if (error) {
+                        endTest('Error asynchronously reissuing non-fungible asset: ' + error);
+                    }
+                    else {
+                        expect(typeof data === 'object' && data !== null
+                            && typeof data.assetIssuanceId === 'string'
+                        ).toBeTrue();
+
+                        // Save asset issuance ID
+                        assetIssuanceId = data.assetIssuanceId;
+
+                        if (!sharedData.assetIssuanceId) {
+                            sharedData.assetIssuanceId = assetIssuanceId;
+                        }
+                    }
+                });
+            });
+
             // Open notification channel
             wsNotifyChannel.open(function (error) {
                 if (error) {
                     endTest('Error opening WebSocket notification channel. Returned error: ' + error);
                 }
                 else {
-                    // WebSocket notification channel is open.
-                    //  Reissue non-fungible asset
-                    apiClient.reissueNonFungibleAsset(assetId, {
-                        async: true
-                    }, [
-                        {
-                            metadata: {
-                                name: 'TSTNFA#' + assetNumber + '_NFT#8',
-                                description: 'Test non-fungible token #8 of test non-fungible asset #' + assetNumber
-                            },
-                            contents: {
-                                data: 'Contents for token #8 of asset #' + assetNumber,
-                                encoding: 'utf8'
-                            }
-                        }
-                    ], function (error, data) {
-                        if (error) {
-                            endTest('Error asynchronously reissuing non-fungible asset: ' + error);
-                        }
-                        else {
-                            expect(typeof data === 'object' && data !== null
-                                && typeof data.assetIssuanceId === 'string'
-                            ).toBeTrue();
-
-                            // Save asset issuance ID
-                            assetIssuanceId = data.assetIssuanceId;
-
-                            if (!sharedData.assetIssuanceId) {
-                                sharedData.assetIssuanceId = assetIssuanceId;
-                            }
-                        }
-                    });
+                    // WebSocket client successfully connected. Wait for open event
                 }
             });
         });
@@ -1229,29 +1245,33 @@ describe('Test changes to Catenis API client ver. 7.0.0.', function  () {
                 endTest();
             });
 
+            wsNotifyChannel.addListener('open', function() {
+                // WebSocket notification channel is open.
+                //  Retrieve non-fungible token asynchronously
+                apiClient.retrieveNonFungibleToken(nfTokenId, {
+                    async: true
+                }, function (error, data) {
+                    if (error) {
+                        endTest('Error retrieving non-fungible token: ' + error);
+                    }
+                    else {
+                        expect(typeof data === 'object' && data !== null
+                            && typeof data.tokenRetrievalId === 'string'
+                        ).toBeTrue();
+
+                        // Save token retrieval ID
+                        sharedData.tokenRetrievalId = tokenRetrievalId = data.tokenRetrievalId;
+                    }
+                });
+            });
+
             // Open notification channel
             wsNotifyChannel.open(function (error) {
                 if (error) {
                     endTest('Error opening WebSocket notification channel. Returned error: ' + error);
                 }
                 else {
-                    // WebSocket notification channel is open.
-                    //  Retrieve non-fungible token asynchronously
-                    apiClient.retrieveNonFungibleToken(nfTokenId, {
-                        async: true
-                    }, function (error, data) {
-                        if (error) {
-                            endTest('Error retrieving non-fungible token: ' + error);
-                        }
-                        else {
-                            expect(typeof data === 'object' && data !== null
-                                && typeof data.tokenRetrievalId === 'string'
-                            ).toBeTrue();
-
-                            // Save token retrieval ID
-                            sharedData.tokenRetrievalId = tokenRetrievalId = data.tokenRetrievalId;
-                        }
-                    });
+                    // WebSocket client successfully connected. Wait for open event
                 }
             });
         });
@@ -1529,19 +1549,23 @@ describe('Test changes to Catenis API client ver. 7.0.0.', function  () {
                 }
             });
 
+            wsNotifyChannel.addListener('open', function() {
+                // WebSocket notification channel is open.
+                //  Transfer non-fungible token
+                apiClient.transferNonFungibleToken(nfTokenIds[2], device2, false, function (error, data) {
+                    if (error) {
+                        endTest('Error transferring non-fungible token: ' + error);
+                    }
+                });
+            });
+
             // Open notification channel
             wsNotifyChannel.open(function (error) {
                 if (error) {
                     endTest('Error opening WebSocket notification channel. Returned error: ' + error);
                 }
                 else {
-                    // WebSocket notification channel is open.
-                    //  Transfer non-fungible token
-                    apiClient.transferNonFungibleToken(nfTokenIds[2], device2, false, function (error, data) {
-                        if (error) {
-                            endTest('Error transferring non-fungible token: ' + error);
-                        }
-                    });
+                    // WebSocket client successfully connected. Wait for open event
                 }
             });
         }, 10000);
@@ -1597,27 +1621,31 @@ describe('Test changes to Catenis API client ver. 7.0.0.', function  () {
                 endTest();
             });
 
+            wsNotifyChannel.addListener('open', function() {
+                // WebSocket notification channel is open.
+                //  Transfer non-fungible token asynchronously
+                apiClient.transferNonFungibleToken(nfTokenIds[3], device2, true, function (error, data) {
+                    if (error) {
+                        endTest('Error transferring non-fungible token: ' + error);
+                    }
+                    else {
+                        expect(typeof data === 'object' && data !== null
+                            && typeof data.tokenTransferId === 'string'
+                        ).toBeTrue();
+
+                        // Save token transfer ID
+                        sharedData.tokenTransferId = tokenTransferId = data.tokenTransferId;
+                    }
+                });
+            });
+
             // Open notification channel
             wsNotifyChannel.open(function (error) {
                 if (error) {
                     endTest('Error opening WebSocket notification channel. Returned error: ' + error);
                 }
                 else {
-                    // WebSocket notification channel is open.
-                    //  Transfer non-fungible token asynchronously
-                    apiClient.transferNonFungibleToken(nfTokenIds[3], device2, true, function (error, data) {
-                        if (error) {
-                            endTest('Error transferring non-fungible token: ' + error);
-                        }
-                        else {
-                            expect(typeof data === 'object' && data !== null
-                                && typeof data.tokenTransferId === 'string'
-                            ).toBeTrue();
-
-                            // Save token transfer ID
-                            sharedData.tokenTransferId = tokenTransferId = data.tokenTransferId;
-                        }
-                    });
+                    // WebSocket client successfully connected. Wait for open event
                 }
             });
         }, 10000);
