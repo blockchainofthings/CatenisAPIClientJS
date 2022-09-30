@@ -1465,9 +1465,9 @@
     //
     //  Parameters:
     //    issuanceInfoOrContinuationToken: [Object|String] {  - An object with the required info for issuing a new asset,
-    //                                              or a string with an asset issuance a continuation token, which
-    //                                              signals a continuation call and should match the value returned by
-    //                                              the previous call
+    //                                              or a string with an asset issuance continuation token, which signals
+    //                                              a continuation call and should match the value returned by the
+    //                                              previous call
     //      assetInfo: [Object] {  - (optional) The properties of the new non-fungible asset to create
     //        name: [String]        - The name of the non-fungible asset
     //        description: [String] - (optional) A description of the non-fungible asset
@@ -1499,8 +1499,8 @@
     //      },
     //      contents: [Object] {  - (optional) The contents of the non-fungible token to issue
     //        data: [String]     - An additional chunk of data of the non-fungible token's contents
-    //        encoding: [String] - (optional, default: base64) The encoding of the contents data chunk. Valid options:
-    //                              utf8, base64, hex
+    //        encoding: [String] - (optional, default: 'base64') The encoding of the contents data chunk. Valid options:
+    //                              'utf8', 'base64', 'hex'
     //      }
     //    }],
     //    isFinal: [Boolean] - (optional, default: true) Indicates whether this is the final call of the asset issuance.
@@ -1576,8 +1576,8 @@
     //      },
     //      contents: [Object] {  - (optional) The contents of the non-fungible token to issue
     //        data: [String]     - An additional chunk of data of the non-fungible token's contents
-    //        encoding: [String] - (optional, default: base64) The encoding of the contents data chunk. Valid options:
-    //                              utf8, base64, hex
+    //        encoding: [String] - (optional, default: 'base64') The encoding of the contents data chunk. Valid options:
+    //                              'utf8', 'base64', 'hex'
     //      }
     //    }],
     //    isFinal: [Boolean] - (optional, default: true) Indicates whether this is the final call of the asset issuance.
