@@ -740,9 +740,9 @@ issueNFAsset({
 #### Doing issuance asynchronously
 
 ```JavaScript
-function getAsyncProgress (assetIssaunceId) {
+function getAsyncProgress (assetIssuanceId) {
     ctnApiClient.retrieveNonFungibleAssetIssuanceProgress(
-        assetIssaunceId,
+        assetIssuanceId,
         function (err, data) {
             if (err) {
                 // Process error
@@ -764,7 +764,7 @@ function getAsyncProgress (assetIssaunceId) {
                 }
                 else {
                     // Asynchronous processing not done yet. Continue pooling
-                    setTimeout(getAsyncProgress, 100, assetIssaunceId);
+                    setTimeout(getAsyncProgress, 100, assetIssuanceId);
                 }
             }
         }
@@ -933,9 +933,9 @@ reissueNFAsset(assetId, undefined, [{
 #### Doing issuance asynchronously
 
 ```JavaScript
-function getAsyncProgress (assetIssaunceId) {
+function getAsyncProgress (assetIssuanceId) {
     ctnApiClient.retrieveNonFungibleAssetIssuanceProgress(
-        assetIssaunceId,
+        assetIssuanceId,
         function (err, data) {
             if (err) {
                 // Process error
@@ -956,7 +956,7 @@ function getAsyncProgress (assetIssaunceId) {
                 }
                 else {
                     // Asynchronous processing not done yet. Continue pooling
-                    setTimeout(getAsyncProgress, 100, assetIssaunceId);
+                    setTimeout(getAsyncProgress, 100, assetIssuanceId);
                 }
             }
         }
@@ -1189,7 +1189,7 @@ function getAsyncProgress (tokenId, tokenTransferId) {
                 if (data.progress.done) {
                     if (data.progress.success) {
                         // Display result
-                        console.log('Non-fungible token successfuly transferred');
+                        console.log('Non-fungible token successfully transferred');
                     }
                     else {
                         // Process error
