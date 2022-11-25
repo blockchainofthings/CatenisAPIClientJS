@@ -1755,7 +1755,7 @@
         postRequest.call(this, 'assets/non-fungible/tokens/:tokenId/transfer', params, data, {
             success: procFunc,
             error: procFunc
-        })
+        });
     }
 
     // Retrieves the current progress of an asynchronous non-fungible token retrieval
