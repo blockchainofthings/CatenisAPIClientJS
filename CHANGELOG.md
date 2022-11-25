@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.1.0] - 2022-11-25
+
+### New features
+- Added support for changes introduced by version 0.13 of the Catenis API: new non-fungible assets feature, including
+  the new API methods List Owned Non-Fungible Tokens, Get Non-Fungible Token Owner, Check Non-Fungible Token Ownership.
+
 ## [7.0.0] - 2022-08-29
 
 ### Breaking changes
