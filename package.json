@@ -1,6 +1,6 @@
 {
   "name": "catenis-api-client-browser",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "main": "src/CatenisApiClientJS.js",
   "license": "MIT",
   "homepage": "https://github.com/blockchainofthings/CatenisAPIClientJS",
