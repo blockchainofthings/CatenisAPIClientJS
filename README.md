@@ -2,7 +2,7 @@
 
 This JavaScript library is used to make it easier to access the Catenis API services from a web browser.
 
-This current release (7.0.0) targets version 0.12 of the Catenis API.
+This current release (7.0.0) targets version 0.13 of the Catenis API.
 
 ## Development
 
@@ -57,7 +57,7 @@ The following options can be used when instantiating the client:
 - **host** \[String\] - (optional, default: <b>*'catenis.io'*</b>) Host name (with optional port) of target Catenis API server.
 - **environment** \[String\] - (optional, default: <b>*'prod'*</b>) Environment of target Catenis API server. Valid values: *'prod'*, *'sandbox'*.
 - **secure** \[Boolean\] - (optional, default: ***true***) Indicates whether a secure connection (HTTPS) should be used.
-- **version** \[String\] - (optional, default: <b>*'0.12'*</b>) Version of Catenis API to target.
+- **version** \[String\] - (optional, default: <b>*'0.13'*</b>) Version of Catenis API to target.
 - **useCompression** \[Boolean\] - (optional, default: ***true***) Indicates whether request body should be compressed.
 - **compressThreshold** \[Number\] - (optional, default: ***1024***) Minimum size, in bytes, of request body for it to be compressed.
 
@@ -1368,6 +1368,63 @@ ctnApiClient.listAssetHolders(assetId, 200, 0,
             if (data.hasMore) {
                 console.log('Not all asset holders have been returned');
             }
+        }
+});
+```
+
+### Listing the non-fungible tokens of a given non-fungible asset that the device currently owns
+
+```JavaScript
+ctnApiClient.listOwnedNonFungibleTokens(assetId, 200, 0,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Owned non-fungible tokens:', data.ownedNFTokens);
+
+            if (data.hasMore) {
+                console.log('Not all owned non-fungible tokens have been returned');
+            }
+        }
+});
+```
+
+### Identifying the device that currently owns a non-fungible token
+
+```JavaScript
+ctnApiClient.getNonFungibleTokenOwner(tokenId,
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Owning device:', data.owner);
+            console.log('Is confirmed:', data.isConfirmed);
+        }
+});
+```
+
+### Checking if a device currently owns one or more non-fungible tokens
+
+```JavaScript
+ctnApiClient.checkNonFungibleTokenOwnership({
+        id: checkDeviceId,
+        isProdUniqueId: false
+    }, {
+        id: assetId,
+        isAssetId: true
+    },
+    function (err, data) {
+        if (err) {
+            // Process error
+        }
+        else {
+            // Process returned data
+            console.log('Non-fungible tokens owned:', data.tokensOwned);
+            console.log('Non-fungible tokens not yet confirmed:', data.tokensUnconfirmed);
         }
 });
 ```

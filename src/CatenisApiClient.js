@@ -42,7 +42,7 @@
     //      host: [String],              - (optional, default: 'catenis.io') Host name (with optional port) of target Catenis API server
     //      environment: [String],       - (optional, default: 'prod') Environment of target Catenis API server. Valid values: 'prod', 'sandbox' (or 'beta')
     //      secure: [Boolean],           - (optional, default: true) Indicates whether a secure connection (HTTPS) should be used
-    //      version: [String],           - (optional, default: '0.12') Version of Catenis API to target
+    //      version: [String],           - (optional, default: '0.13') Version of Catenis API to target
     //      useCompression: [Boolean],   - (optional, default: true) Indicates whether request body should be compressed. Note: modern
     //                                                               web browsers will always accept compressed request responses
     //      compressThreshold: [Number], - (optional, default: 1024) Minimum size, in bytes, of request body for it to be compressed
@@ -58,7 +58,7 @@
         var _host = 'catenis.io';
         var _subdomain = '';
         var _secure = true;
-        var _version = '0.12';
+        var _version = '0.13';
 
         this.useCompression = true;
         this.compressThreshold = 1024;
@@ -1776,6 +1776,105 @@
         var procFunc = ApiClient.processReturn.bind(undefined, callback);
 
         getRequest.call(this, 'assets/non-fungible/tokens/:tokenId/transfer/:transferId', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    }
+
+    // Retrieves a list of the non-fungible tokens of a given non-fungible asset that are currently
+    //  owned by the virtual device issuing the request
+    //
+    //  Parameters:
+    //    assetId: [String] - The ID of the non-fungible asset the non-fungible tokens of which that are currently owned
+    //                         by the virtual device issuing the request should be retrieved
+    //    limit [Number] - (optional, default: 500) Maximum number of list items that should be returned. Must be a
+    //                      positive integer value not greater than 500
+    //    skip [Number]  - (optional, default: 0) Number of list items that should be skipped (from beginning of list)
+    //                      and not returned. Must be a non-negative (includes zero) integer value
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.listOwnedNonFungibleTokens = function (assetId, limit, skip, callback) {
+        if (typeof limit === 'function') {
+            callback = limit;
+            limit = undefined;
+            skip = undefined;
+        }
+        else if (typeof skip === 'function') {
+            callback = skip;
+            skip = undefined;
+        }
+
+        var params = {
+            url: [
+                assetId
+            ]
+        };
+
+        if (limit) {
+            params.query = {
+                limit: limit
+            };
+        }
+
+        if (skip) {
+            if (!params.query) {
+                params.query = {};
+            }
+
+            params.query.skip = skip;
+        }
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/non-fungible/:assetId/tokens/owned', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    }
+
+    // Identifies the virtual device that currently owns a given non-fungible token
+    //
+    //  Parameters:
+    //    tokenId: [String] - The ID of the non-fungible token the owner of which should be identified
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.getNonFungibleTokenOwner = function (tokenId, callback) {
+        var params = {
+            url: [
+                tokenId
+            ]
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        getRequest.call(this, 'assets/non-fungible/tokens/:tokenId/owner', params, {
+            success: procFunc,
+            error: procFunc
+        });
+    }
+
+    // Verifies if a virtual device is the current owner of a single or multiple non-fungible tokens
+    //
+    //  Parameters:
+    //    device: [Object] { -  The virtual device to check if it has ownership
+    //      id: [String]              - The ID of the device. Should be a device ID unless isProdUniqueId is set
+    //      isProdUniqueId: [Boolean] - (optional, default: false) Indicates whether the supplied ID is a product unique
+    //                                   ID
+    //    }
+    //    nonFungibleTokens: [Object] { -  The non-fungible tokens to be verified
+    //      id: [String]              - Either the ID of the single non-fungible token to be verified, or the ID of the
+    //                                   non-fungible asset the non-fungible tokens of which should be verified
+    //      isAssetId: [Boolean] - (optional, default: false) Indicates whether the specified ID is a non-fungible asset
+    //                              ID. Otherwise, it should be interpreted as a non-fungible token ID
+    //    }
+    //    callback: [Function] - Callback function
+    ApiClient.prototype.checkNonFungibleTokenOwnership = function (device, nonFungibleTokens, callback) {
+        var data = {
+            device,
+            nonFungibleTokens
+        };
+
+        var procFunc = ApiClient.processReturn.bind(undefined, callback);
+
+        postRequest.call(this, 'assets/non-fungible/tokens/ownership', undefined, data, {
             success: procFunc,
             error: procFunc
         });
