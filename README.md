@@ -4,6 +4,11 @@ This JavaScript library is used to make it easier to access the Catenis API serv
 
 This current release (7.1.0) targets version 0.13 of the Catenis API.
 
+## Notice of deprecation
+
+This library has been **DEPRECATED** in favor of a new library, namely [Catenis API Client for (Modern) JavaScript](https://github.com/blockchainofthings/catenis-api-client-js-modern),
+that makes use of modern JavaScript constructs and Web APIs.
+
 ## Development
 
 ### Environment setup
